@@ -43,7 +43,7 @@ INVERSED_BG = b'\x4d'
 UNMASKING = b'\x5F'    
 
 
-class TextAttributs():
+class TextAttributes():
 
     background = CharacterColor.WHITE
     blinking = False
@@ -53,7 +53,7 @@ class TextAttributs():
     def __init__(self) -> None:
         pass
 
-class ZoneAttributs():
+class ZoneAttributes():
 
     background = BackgroundColor.BLACK
     masking = False

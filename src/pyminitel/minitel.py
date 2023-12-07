@@ -4,7 +4,7 @@ from enum import Enum
 from serial import Serial
 
 import pyminitel.alphanumerical as alphanumerical
-from pyminitel.attributs import *
+from pyminitel.attributes import *
 from pyminitel.layout import Layout
 from pyminitel.mode import Mode
 from pyminitel.visualization_module import VisualizationModule
@@ -19,7 +19,7 @@ class Minitel:
     __mode = None
     __vm = None
 
-    __zone_attribut = None
+    __zone_attribute = None
 
     class Bauderate(Enum):
         MINIMAL = 75  # 75 Bauds
@@ -98,7 +98,7 @@ class Minitel:
         self.layout = Layout(self.din)
         self.__mode = mode
         self.__vm = vm
-        self.__zone_attribut = ZoneAttributs()
+        self.__zone_attribute = ZoneAttributes()
 
     def switchReceiverTransmitter(self, receiver: Module, transmitter: Module, on: bool = True) -> dict:
         # TODO - TEST
@@ -154,7 +154,6 @@ class Minitel:
 
         self.din.write(command)
         answer = self.din.read(5)
-        print(answer)
 
         if answer[0:2] != self.PRO3 or answer[2:3] != self.FROM or answer[3:4] != self.IO_CODES[module.value][io.value]:
             print("Error - Response from getModuleIOStatus's Request is invalid (got :" + str(answer.hex()) + ")", file=sys.stderr)
@@ -401,23 +400,23 @@ class Minitel:
 
         if color is not None:
             bytes_data += ESC + color.value 
-            self.__zone_attribut.background = color
+            self.__zone_attribute.background = color
 
         if masking is not None:
             if masking:
                 bytes_data += ESC + MASKING
-                self.__zone_attribut.masking = True
+                self.__zone_attribute.masking = True
             else:
                 bytes_data += ESC + UNMASKING
-                self.__zone_attribut.masking = False
+                self.__zone_attribute.masking = False
         
         if highlight is not None:
             if highlight:
                 bytes_data += ESC + START_HIGHLIGHTING
-                self.__zone_attribut.highlight = True
+                self.__zone_attribute.highlight = True
             else:
                 bytes_data += ESC + END_HIGHLIGHTING
-                self.__zone_attribut.highlight = False
+                self.__zone_attribute.highlight = False
     
         bytes_data += DELIMETER
 
@@ -425,7 +424,7 @@ class Minitel:
 
     def resetZoneAttributes(self):
         bytes_array = ESC + BackgroundColor.BLACK.value + ESC + UNMASKING + ESC + END_HIGHLIGHTING + DELIMETER
-        self.__zone_attribut = ZoneAttributs()
+        self.__zone_attribute = ZoneAttributes()
 
         self.din.write(bytes_array)
 
@@ -450,21 +449,21 @@ class Minitel:
         pass 
 
     def newLine(self):
-        self.layout.CariageReturn()
-        self.layout.MoveCursorDown()
+        self.layout.cariageReturn()
+        self.layout.moveCursorDown()
 
         color = None
         highlight = None
         masking = None
 
-        if self.__zone_attribut.background != BackgroundColor.BLACK:
-            color = self.__zone_attribut.background
+        if self.__zone_attribute.background != BackgroundColor.BLACK:
+            color = self.__zone_attribute.background
 
-        if self.__zone_attribut.highlight:
-            highlight = self.__zone_attribut.highlight
+        if self.__zone_attribute.highlight:
+            highlight = self.__zone_attribute.highlight
 
-        if self.__zone_attribut.masking:
-            masking = self.__zone_attribut.masking
+        if self.__zone_attribute.masking:
+            masking = self.__zone_attribute.masking
 
         if color is not None or highlight is not None or masking is not None:
             self.setZoneAttributes(color=color, masking=masking, highlight=highlight)
@@ -483,7 +482,7 @@ class Minitel:
                 text = text[1:]
                 continue
             if text[0] == '\r':
-                self.layout.CariageReturn()
+                self.layout.cariageReturn()
                 c = 1
                 text = text[1:]
                 continue

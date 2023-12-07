@@ -1,6 +1,6 @@
 from pyminitel.minitel import Minitel
 from pyminitel.layout import Layout
-from pyminitel.attributs import *
+from pyminitel.attributes import *
 
 import time
 

@@ -1,6 +1,6 @@
 from pyminitel.minitel import Minitel
 from pyminitel.layout import Layout
-from pyminitel.attributs import *
+from pyminitel.attributes import *
 
 import time
 
@@ -103,7 +103,7 @@ msg = "/_/ |_/\\____//____//_/"
 minitel.print(break_word=True, text=msg)
 minitel.newLine()
 minitel.layout.moveCursorDown(1)
-minitel.layout.oveCursorRight(10)
+minitel.layout.moveCursorRight(10)
 msg = "    ____  ____  __  _______"
 minitel.print(break_word=True, text=msg)
 minitel.newLine()
