@@ -16,3 +16,9 @@ No plan for other models now.
 
 ## Requirements
 * Python3.12.
+
+## How to Install
+From root's project directory, run the command:
+```sh
+python3 -m pip install .
+```
