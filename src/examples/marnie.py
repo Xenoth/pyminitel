@@ -5,9 +5,8 @@ from pyminitel.attributs import *
 import time
 
 minitel = Minitel(port='/dev/tty.usbserial-2')
-l = Layout(minitel.din)
 
-minitel.layout.Clear()
+minitel.layout.clear()
 msg = "   ________________"
 minitel.print(break_word=True, text=msg)
 minitel.newLine()
@@ -39,8 +38,8 @@ minitel.newLine()
 msg = "/_/  /_//_/  |/_/ |_|/_/ |_//_//____/"
 minitel.print(break_word=True, text=msg)
 minitel.newLine()
-l.MoveCursorDown(4)
-l.MoveCursorRight(5)
+minitel.layout.moveCursorDown(4)
+minitel.layout.moveCursorRight(5)
 
 minitel.setTextAttributes(blinking=True, color=CharacterColor.BLACK)
 minitel.setZoneAttributes(BackgroundColor.WHITE, masking=False)
@@ -49,7 +48,7 @@ minitel.print(msg)
 minitel.setZoneAttributes(color=BackgroundColor.BLACK)
 minitel.resetTextAttributes()
 minitel.newLine()
-l.MoveCursorDown(3)
+minitel.layout.moveCursorDown(3)
 
 minitel.setZoneAttributes(color=BackgroundColor.BLACK, highlight=True)
 msg = "[MOTHER]"
@@ -58,7 +57,7 @@ minitel.setZoneAttributes(highlight=False)
 msg = "- Good Morning, Lieutenant."
 minitel.print(msg)
 minitel.newLine()
-l.MoveCursorDown(2)
+minitel.layout.moveCursorDown(2)
 msg = "XENOTH_VAL[Lieut.]$> "
 minitel.print(msg)
 

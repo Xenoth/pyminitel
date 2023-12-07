@@ -1,5 +1,6 @@
 from pyminitel.alphanumerical import *
 from pyminitel.mode import Mode
+from pyminitel.visualization_module import VisualizationModule
 
 from enum import Enum
 from sys import stderr
@@ -52,12 +53,12 @@ class Layout:
     def __init__(self, din = None) -> None:
         self.din = din
 
-    def CariageReturn(self):
+    def cariageReturn(self):
         cr = CR
 
         self.din.write(cr)
 
-    def MoveCursorUp(self, n: int = 1) -> None:
+    def moveCursorUp(self, n: int = 1) -> None:
         command = b''
         # TODO - CSI when cursor position is 1
         # if n < 4:
@@ -70,7 +71,7 @@ class Layout:
         
         self.din.write(command)
 
-    def MoveCursorDown(self, n: int = 1):
+    def moveCursorDown(self, n: int = 1):
         command = b''
         # TODO - CSI when cursor position is 40
         # if n < 4:
@@ -84,7 +85,7 @@ class Layout:
 
         self.din.write(command)
 
-    def MoveCursorRight(self, n: int = 1):
+    def moveCursorRight(self, n: int = 1):
         command = b''
         if n < 4:
             i = 0
@@ -96,7 +97,7 @@ class Layout:
 
         self.din.write(command)
 
-    def MoveCursorLeft(self, n: int = 1):
+    def moveCursorLeft(self, n: int = 1):
         command = b''
         if n < 4:
             i = 0
@@ -108,62 +109,70 @@ class Layout:
 
         self.din.write(command)
 
-    def SetCursorPosition(self, r: int = 1, c: int = 1):
+    def setCursorPosition(self, r: int = 1, c: int = 1):
         csi = CSI + str.encode(str(r)) + b'\x3b' + str.encode(str(c)) + b'\x48'
 
         self.din.write(csi)
 
-    def ResetCursor(self):
+    def resetCursor(self):
         rs = RS
 
         self.din.write(rs)
 
-    def Clear(self):
+    def clear(self):
         ff = FF
 
         self.din.write(ff)
 
-    def FillLine(self):
+    def fillLine(self):
         can = CAN
         
         self.din.write(can)
 
-    def EraseInDisplay(self, n: CSI_J = CSI_J.FROM_CURSOR_TO_EOS):
+    def eraseInDisplay(self, n: CSI_J = CSI_J.FROM_CURSOR_TO_EOS):
+        # TODO - Test
         csi_j = CSI + str.encode(str(n.value)) + b'\x4a'
 
         self.din.write(csi_j)
 
-    def EraseInLine(self, n: CSI_K = CSI_K.FROM_CURSOR_TO_EOL):
+    def eraseInLine(self, n: CSI_K = CSI_K.FROM_CURSOR_TO_EOL):
+        # TODO - Test
         csi_k = CSI + str.encode(str(n.value)) + b'\x4b'
 
         self.din.write(csi_k)
 
-    def Delete(self, n: int = 1):
+    def delete(self, n: int = 1):
+        # TODO - Test
         csi_p = CSI + str.encode(str(n)) + b'\x50'
 
         self.din.write(csi_p)
 
-    def SetInsertMode(self):
+    def setInsertMode(self):
+        # TODO - Test
         csi_h = CSI + b'\x34\x68'
 
         self.din.write(csi_h)
 
-    def UnsetInsertMode(self):
+    def unsetInsertMode(self):
+        # TODO - Test
         csi_i = CSI + b'\x34\x6c'
 
         self.din.write(csi_i)
         
-    def DeleteNextLines(self, n: int = 1):
+    def deleteNextLines(self, n: int = 1):
+        # TODO - Test
         csi_m = CSI + str.encode(str(n)) + b'\x4d'
 
         self.din.write(csi_m)
 
-    def InsertLines(self, n: int = 1):
+    def insertLines(self, n: int = 1):
+        # TODO - Test
         csi_l = CSI + str.encode(str(n)) + b'\x4c'
 
         self.din.write(csi_l)
 
-    def AddSubSection(self, r: int, c: int, char: str = None):
+    def addSubSection(self, r: int, c: int, char: str = None):
+        # TODO - Test
         if str is not None:
             if len(char) != 1:
                 print("Error - Invalid argument passer, expected character but got" + char + ".", file=stderr)
@@ -179,6 +188,6 @@ class Layout:
         us = US + binary_r + binary_c
 
         if char is not None:
-            us += ascii_to_alphanumerical('A', pyminitel.visualization_module.VisualizationModule.VGP5)
+            us += ascii_to_alphanumerical('A', VisualizationModule.VGP5)
 
         self.din.write(us)
