@@ -5,6 +5,8 @@ from pyminitel.visualization_module import VisualizationModule
 from enum import Enum
 from sys import stderr
 from serial import Serial
+from logging import *
+
 
 BS = b'\x08'        # Backspace
 HT = b'\x09'        # Horizontal Tab
@@ -175,7 +177,7 @@ class Layout:
         # TODO - Test
         if str is not None:
             if len(char) != 1:
-                print("Error - Invalid argument passer, expected character but got" + char + ".", file=stderr)
+                log(ERROR, "Invalid argument passer, expected character but got" + char + ".")
         
         mask = 1 << 6
 

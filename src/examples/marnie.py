@@ -1,12 +1,13 @@
 from pyminitel.minitel import Minitel
-from pyminitel.layout import Layout
+from pyminitel.mode import Mode
 from pyminitel.attributes import *
 
 import time
 
-minitel = Minitel(port='/dev/tty.usbserial-2')
+minitel = Minitel(port='/dev/tty.usbserial-2', mode=Mode.VIDEOTEX)
+minitel.setConnectorBauderate(Minitel.Bauderate.BAUDS_4800, Minitel.Bauderate.BAUDS_4800)
 
-minitel.layout.clear()
+minitel.clear()
 msg = "   ________________"
 minitel.print(break_word=True, text=msg)
 minitel.newLine()
@@ -58,11 +59,10 @@ msg = "- Good Morning, Lieutenant."
 minitel.print(msg)
 minitel.newLine()
 minitel.layout.moveCursorDown(2)
+
 msg = "XENOTH_VAL[Lieut.]$> "
 minitel.print(msg)
-
 minitel.showCursor()
-
 minitel.Beep()
-
+minitel.setConnectorBauderate(Minitel.Bauderate.BAUDS_1200, Minitel.Bauderate.BAUDS_1200)
 time.sleep(10)

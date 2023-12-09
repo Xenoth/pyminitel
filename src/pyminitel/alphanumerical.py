@@ -1,6 +1,7 @@
 import pyminitel.visualization_module as visualization_module
-from sys import stderr
+
 from collections import defaultdict
+from logging import *
 
 G0 = {
     '!': [ b'\x21' ],
@@ -497,7 +498,7 @@ def ascii_to_alphanumerical(c: str, vm: visualization_module.VisualizationModule
     if c in ES:
             return ES[c][0]
     
-    print('Error - Unable to convert the value "' + str(c) + '"', file=stderr)
+    log(ERROR, 'Unable to convert the value "' + str(c) + '"')
 
     return G0['_'][0]
 
@@ -507,10 +508,10 @@ def alphanumerical_to_ascii(data: bytes) -> tuple[int, str]:
     
     if data[0:1] == SS2:
         if len_data < 2:
-            print("Error - SS2 character found but data's length is " + len_data + " (expected at least 2)")
+            log(ERROR, "SS2 character found but data's length is " + len_data + " (expected at least 2)")
         if data[1:2] == b'\x41' or data[1:2] == b'\x42' or data[1:2] == b'\x43' or data[1:2] == b'\x48' or data[1:2] == b'\x4b':
             if len_data < 3:
-                print("Error - SS2 character found with accentuation but data's length is " + len_data + " (expected at least 3)")
+                log(ERROR, "SS2 character found with accentuation but data's length is " + len_data + " (expected at least 3)")
             if data[:3] in inverted_VGP5:
                 return 3, inverted_VGP5[data[:3]][0]
 
@@ -521,5 +522,5 @@ def alphanumerical_to_ascii(data: bytes) -> tuple[int, str]:
             return 1, inverted_SC[data[:1]][0],
     
     
-    print("Error - Unable to convert bytes " + data.hex() + "" )
+    log(ERROR, "Unable to convert bytes " + data.hex() + "" )
     return 1, '_'

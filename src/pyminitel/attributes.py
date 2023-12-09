@@ -15,12 +15,9 @@ class CharacterColor(Enum):
 
 BLINKING = b'\x48'
 FIXED = b'\x49'
-
 NORMAL_SIZE = b'\x4c'
-
 DOUBLE_HEIGHT = b'\x4d'
 DOUBLE_WIDTH = b'\x4e'
-
 DOUBLE_SIZE = b'\x4f'
 
 class BackgroundColor(Enum):
@@ -45,7 +42,7 @@ UNMASKING = b'\x5F'
 
 class TextAttributes():
 
-    background = CharacterColor.WHITE
+    color = CharacterColor.WHITE
     blinking = False
     double_height = False
     double_width = False
