@@ -12,8 +12,8 @@ import time
 class MarniePage(Page):
 
     def __init__(self, minitel: Minitel) -> None:
-        super().__init__(minitel)
         self.prompt = ''
+        super().__init__(minitel)
 
     def print_page(self):
         self.minitel.clear()

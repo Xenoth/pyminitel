@@ -1,6 +1,7 @@
-
 from pyminitel.videotex import Videotex
 from pyminitel.attributes import TextAttributes, ZoneAttributes, BackgroundColor, CharacterColor
+
+import os
 
 page = Videotex()
 
@@ -51,4 +52,4 @@ page.drawBox(10, 6, 3, 35, desc_attr)
 page.setText('Taste the rainbow!',10, 7)
 page.setText('>Merci les lesbiennes',11, 7)
 
-page.toVideotexFile(filename='GUIDE')
+page.toVideotexFile(filename='GUIDE', destination=os.path.join('.', 'src', 'examples'))

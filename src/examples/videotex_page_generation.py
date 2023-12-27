@@ -2,6 +2,8 @@
 from pyminitel.videotex import Videotex
 from pyminitel.attributes import TextAttributes, ZoneAttributes, BackgroundColor, CharacterColor
 
+import os
+
 page = Videotex()
 
 zone = ZoneAttributes()
@@ -68,5 +70,4 @@ textAttribute = TextAttributes()
 textAttribute.setAttributes(blinking=True)
 page.setText(text='Yiff me plenty', r=21, c=14, attribute=textAttribute)
 
-page.toVideotexFile()
-del page
+page.toVideotexFile(destination=os.path.join('.', 'src', 'examples'))

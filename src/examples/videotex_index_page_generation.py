@@ -1,6 +1,7 @@
-
 from pyminitel.videotex import Videotex
 from pyminitel.attributes import TextAttributes, ZoneAttributes, BackgroundColor, CharacterColor
+
+import os
 
 page = Videotex()
 
@@ -42,4 +43,4 @@ page.setText('Correct.', 22, 33, button_attr)
 page.setText("List all local services code", 24, 9)
 page.setText(' Guide  ', 24, 33, button_attr)
 
-page.toVideotexFile(filename='INDEX')
+page.toVideotexFile(filename='INDEX', destination=os.path.join('.', 'src', 'examples'))

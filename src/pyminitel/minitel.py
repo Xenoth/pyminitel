@@ -10,7 +10,7 @@ from pyminitel.mode import Mode, RESOLUTION
 from pyminitel.visualization_module import VisualizationModule
 from pyminitel.mode import Mode
 from pyminitel.keyboard import *
-from pyminitel.din import DIN
+from pyminitel.din import CommSerial, CommSocket
 
 class MinitelException(Exception):
     # Raised on object's instanciation
@@ -20,7 +20,7 @@ class Minitel:
 
     __port = None
     __baudrate = None
-    __din = None
+    __comm = None
 
     __manufacturer = None
     __model = None
@@ -164,15 +164,22 @@ class Minitel:
         MINITEL_5 = 'y'
 
 
-    def __init__(self, port, baudrate = Baudrate.BAUDS_1200, mode: Mode = Mode.VIDEOTEX, safe_writing: bool = False):
-        try:
-            self.__din = DIN(port=port, baudrate=baudrate.to_int(), safe_writing=safe_writing)
-        except Exception as e:
-            log(ERROR, 'Unable to open Serial - ' + str(e))
-            raise MinitelException
+    def __init__(self, port: str, baudrate = Baudrate.BAUDS_1200, ip: str = None, mode: Mode = Mode.VIDEOTEX, safe_writing: bool = False):
+        if not ip:
+            try:
+                self.__comm = CommSerial(port=port, baudrate=baudrate.to_int(), safe_writing=safe_writing)
+            except Exception as e:
+                log(ERROR, 'Unable to open Serial - ' + str(e))
+                raise MinitelException
+        else:
+            try:
+                self.__comm = CommSocket(port=int(port), host=ip)
+            except Exception as e:
+                log(ERROR, 'Unable to create socket - ' + str(e))
+                raise MinitelException
         
-        self.__din.start()
-        self.__din.setTimeout(.5)
+        self.__comm.start()
+        self.__comm.setTimeout(.5)
         self.__port = port
         self.__baudrate = baudrate
 
@@ -216,22 +223,22 @@ class Minitel:
 
         self.getKeyboardMode()
 
-        self.__din.setTimeout(None)
+        self.__comm.setTimeout(None)
     
     def __del__(self):
-        if self.__din:
-            if not self.__din.stopped():
-                self.__din.stop()
-                self.__din.join()
+        if self.__comm:
+            if not self.__comm.stopped():
+                self.__comm.stop()
+                self.__comm.join()
         
-            self.__din.close()
+            self.__comm.close()
 
     def read(self, n: bytes) -> bytes:
-        return self.__din.read(n)
+        return self.__comm.read(n)
     
     def send(self, data: bytes) -> None:
         try:
-            self.__din.put(data)
+            self.__comm.put(data)
         except Exception as e:
             log(ERROR, 'Got Exception while attempting to send message - ' + str(e))
 
@@ -495,10 +502,11 @@ class Minitel:
 
         self.send(command)
 
-        time.sleep(1)
+        # time.sleep(.5)
 
         old_baudrate = self.__baudrate
-        self.__din.setBaudrate(emission_baudrate.to_int())
+        if type(self.__comm) == CommSerial:
+            self.__comm.setBaudrate(emission_baudrate.to_int())
 
         manufacturer, model, version = None, None, None
         manufacturer, model, version = self.getMinitelInfo()
@@ -507,9 +515,10 @@ class Minitel:
             
             log(ERROR, "setConnectorBaudrate failed, Restoring initial baudrate...")
 
-            self.__din.close()
-            self.__din.setBaudrate(emission_baudrate.to_int())
-            self.__din.open()
+            if type(self.__comm) == CommSerial:
+                self.__comm.close()
+                self.__comm.setBaudrate(emission_baudrate.to_int())
+                self.__comm.open()
 
             prog_byte = 1 << 6
             prog_byte |= old_baudrate.value << 3
@@ -518,8 +527,7 @@ class Minitel:
             command = self.PRO2 + self.PROG + prog_byte.to_bytes(1, 'little')
 
             self.send(command)
-            
-            time.sleep(1)
+            # time.sleep(.5)
 
             answer = self.read(4)
 
@@ -753,8 +761,8 @@ class Minitel:
         self.__bindings = {} 
 
     def readKeyboard(self, timeout: int = None):
-        old_timeout = self.__din.getTimeout()
-        self.__din.setTimeout(timeout)
+        old_timeout = self.__comm.getTimeout()
+        self.__comm.setTimeout(timeout)
 
         data = self.read(1)
         if data[0:1] == b'\x19' or data[0:1] == b'\x13' or data[0:1] == b'\x1b':
@@ -764,7 +772,7 @@ class Minitel:
                 if data[2:3] == b'\x34' or data[2:3] == b'\x32':
                     data += self.read(1)
 
-        self.__din.setTimeout(old_timeout)
+        self.__comm.setTimeout(old_timeout)
 
         callback_called = False
 

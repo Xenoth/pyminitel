@@ -2,8 +2,6 @@ from enum import Enum
 from logging import *
 import copy
 
-from pyminitel.mode import Mode
-
 ESC = b'\x1b'
 DELIMETER = b'\x20'    
 

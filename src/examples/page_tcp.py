@@ -7,7 +7,9 @@ import os
 
 minitel = None
 
-minitel = get_connected_serial_minitel()
+
+# minitel = get_connected_serial_minitel() # Serial comm
+minitel = get_connected_serial_minitel(ip='127.0.0.1', port='8081') # TCP comm
 if minitel is None:
     exit()
 
@@ -15,7 +17,7 @@ minitel.disableKeyboard()
 minitel.clear()
 minitel.setScreenPageMode()
 minitel.setVideoMode(Mode.VIDEOTEX)
-filepath = os.path.join('.', 'PAGE_VGP5_.VDT')
+filepath = os.path.join('.', 'src', 'examples', 'PAGE_VGP5_.VDT')
 if not os.path.exists(filepath):
     log(ERROR, "File not found: " + str(filepath))
     exit()
