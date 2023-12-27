@@ -1,7 +1,6 @@
 import sys, time, math
 
 from enum import Enum
-from serial import Serial, SerialException
 from logging import *
 
 import pyminitel.alphanumerical as alphanumerical
@@ -168,21 +167,25 @@ class Minitel:
     def __init__(self, port, baudrate = Baudrate.BAUDS_1200, mode: Mode = Mode.VIDEOTEX, safe_writing: bool = False):
         try:
             self.__din = DIN(port=port, baudrate=baudrate.to_int(), safe_writing=safe_writing)
-        except SerialException:
-            log(ERROR, 'Unable to open Serial.')
+        except Exception as e:
+            log(ERROR, 'Unable to open Serial - ' + str(e))
             raise MinitelException
-
+        
+        self.__din.start()
+        self.__din.setTimeout(.5)
         self.__port = port
         self.__baudrate = baudrate
-        self.__din.open()
-        self.__din.start()
 
         self.__text_attribute = TextAttributes()
         self.__zone_attribute = ZoneAttributes()
 
         self.__bindings = {}
 
-        self.getMinitelInfo()
+        try:
+            self.getMinitelInfo()
+        except Exception as e:
+            log(ERROR, 'Unable to retreive Minitel Info - ' + str(e))
+            raise MinitelException
 
         if self.__manufacturer is None:
             log(ERROR, 'Unable to communicate with the minitel, bad baudrate or com port.')
@@ -212,17 +215,25 @@ class Minitel:
         print('* New Video Mode:' + str(self.__mode.name))
 
         self.getKeyboardMode()
+
+        self.__din.setTimeout(None)
     
     def __del__(self):
         if self.__din:
+            if not self.__din.stopped():
+                self.__din.stop()
+                self.__din.join()
+        
             self.__din.close()
-            del self.__din
 
     def read(self, n: bytes) -> bytes:
         return self.__din.read(n)
     
     def send(self, data: bytes) -> None:
-        self.__din.put(data)
+        try:
+            self.__din.put(data)
+        except Exception as e:
+            log(ERROR, 'Got Exception while attempting to send message - ' + str(e))
 
     def switchReceiverTransmitter(self, receiver: Module, transmitter: Module, on: bool = True) -> dict:
         if (
@@ -486,12 +497,8 @@ class Minitel:
 
         time.sleep(1)
 
-        self.__din.close()
-
         old_baudrate = self.__baudrate
-        
         self.__din.setBaudrate(emission_baudrate.to_int())
-        self.__din.open()
 
         manufacturer, model, version = None, None, None
         manufacturer, model, version = self.getMinitelInfo()
@@ -721,135 +728,31 @@ class Minitel:
         else:
             self.send(Layout.setCursorPosition() + Layout.eraseInDisplay())
 
-    def newLine(self, repeat_zone_attributs = True) -> int:
-        # TODO - REDO
-        data = Layout.cariageReturn()
-        data += Layout.moveCursorDown()
-
-        if self.__mode == Mode.VIDEOTEX and self.__text_attribute.double_height:
-            data += Layout.moveCursorDown()
-
-        if repeat_zone_attributs:
-            default_zone = ZoneAttributes()
-            data += default_zone.diff(self.__zone_attribute)
-            if self.__text_attribute.double_width:
-                self.send(data)
-                return 3
-            self.send(data)
-            return 2
-        self.send(data)
-        return 1
+    def newLine(self):
+        self.send(Layout.cariageReturn() + Layout.moveCursorDown())
     
-    def print(self, text: str, text_align: TextAlign = TextAlign.LEFT, break_word: bool = False):
-        # TODO - REDO
-        min_c = 1
-        max_c = RESOLUTION[self.__mode][1]
-
-        r, c = self.getCursorPosition()
-        if c == -1:
-            self.newLine()
-            c = min_c
+    def print(self, text: str):
+        data = b''
+        for c in text:
+            data += alphanumerical.ascii_to_alphanumerical(c=c, vm=self.__vm)
         
-        if r == 1 and self.__mode == Mode.VIDEOTEX and self.__text_attribute.double_height:
-            self.newLine()
-            r += 1
+        self.send(data)
         
-        factor = 1
-        if self.__mode == Mode.VIDEOTEX and self.__text_attribute.double_width:
-            factor = 2
-
-        while len(text):
-
-            if text[0] == '\n':
-                c = self.newLine()
-                text = text[1:]
-                continue
-            elif text[0] == '\r':
-                text = text[1:]
-                self.send(Layout.cariageReturn())
-                c = min_c
-                continue
-            elif text[0] == ' ':
-                self.send(
-                    alphanumerical.ascii_to_alphanumerical(' ', vm=self.__vm)
-                )
-                text = text[1:]
-                c += 1 * factor
-                if c > max_c:
-                    c == min_c
-                continue
-            
-            else:
-                line = text.split('\n')[0]
-                line = text.split('\r')[0]
-                word = line.split()[0]
-
-                if not break_word:
-                    if (len(word) * factor) + c > max_c:
-                        c = self.newLine()                
-                        
-                        if (len(word) * factor) + c > max_c:
-                            c2 = c
-                            for char in word:
-                                if c2 > max_c:
-                                    c2 = min_c
-                                    if self.__mode == Mode.MIXED:
-                                        self.newLine()
-                                self.send(
-                                    alphanumerical.ascii_to_alphanumerical(char, vm=self.__vm)
-                                )
-                                c2 += 1
-                            c += 1 * factor
-                            if c > max_c:
-                                c == min_c
-                            text = text[len(word):]
-                            continue
-                else:
-                    # r, c2 = self.getCursorPosition() 
-                    # print('c: ' +  str(c) + ' c2: ' + str(c2) + ' char: ' + text[0])
-                    if c >= max_c - (1 * factor)  and text[0] != ' ' and len(text) > 1 and text[1] != ' ':
-                        if not text[1].isalnum():
-                            self.send(
-                                alphanumerical.ascii_to_alphanumerical(text[0], vm=self.__vm)
-                            )
-                            self.send(Layout.moveCursorUp())
-                            if self.__text_attribute.double_height:
-                                self.send(Layout.moveCursorUp())
-                            c = self.newLine()
-                            text = text[1:]
-                            continue
-
-                        self.send(
-                            alphanumerical.ascii_to_alphanumerical('-', vm=self.__vm)
-                        )
-                        self.send(Layout.moveCursorUp())
-                        if self.__text_attribute.double_height:
-                            self.send(Layout.moveCursorUp())
-                        c = self.newLine()
-                        continue
-
-            self.send(
-                alphanumerical.ascii_to_alphanumerical(text[0], vm=self.__vm)
-            )
-            c += 1 * factor
-            if c > max_c:
-                c == min_c
-                if self.__mode == Mode.MIXED:
-                    self.newLine()
-            text = text[1:]
-
     def bind(self, key: KeyboardCode, callback):
 
         if isinstance(key, FilterKeyboardCode):
             self.__filter_bindings[key] = callback
-            print('filter')
             return
-        
-        print('key')
 
         self.__bindings[key] = callback
 
-    def readKeyboard(self, timeout: int = 0):
+    def clearBindings(self):
+        for filter in self.__filter_bindings:
+            self.__filter_bindings[filter] = None
+        
+        self.__bindings = {} 
+
+    def readKeyboard(self, timeout: int = None):
         old_timeout = self.__din.getTimeout()
         self.__din.setTimeout(timeout)
 
@@ -874,7 +777,6 @@ class Minitel:
             return
         
         if self.__filter_bindings[FilterKeyboardCode.Any_Keys] is not None:
-            print('any')
             self.__filter_bindings[FilterKeyboardCode.Any_Keys]()
             callback_called = True
 
@@ -884,7 +786,8 @@ class Minitel:
                 if self.__filter_bindings[FilterKeyboardCode.Printable_Keys]:
                     self.__filter_bindings[FilterKeyboardCode.Printable_Keys](char)
                     callback_called = True
-        except:
+        except Exception as e:
+            log(ERROR, e)
             pass
 
 

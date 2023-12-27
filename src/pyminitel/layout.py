@@ -2,7 +2,6 @@ from pyminitel.alphanumerical import *
 from pyminitel.visualization_module import VisualizationModule
 
 from enum import Enum
-from serial import Serial
 from logging import *
 
 
@@ -52,15 +51,14 @@ class Layout:
 
     def moveCursorDown(n: int = 1) -> bytes:
         command = b''
-        # TODO - CSI when cursor position is 40
-        # if n < 4:
-        i = 0
-        while i < n:
-            i += 1
-            command += LF 
+        if n < 4:
+            i = 0
+            while i < n:
+                i += 1
+                command += LF 
 
-        # else:
-        #     command += CSI + str.encode(str(n)) + CUD
+        else:
+            command += CSI + str.encode(str(n)) + CUD
 
         return command
 
@@ -104,9 +102,20 @@ class Layout:
         # TODO - Test
         return CSI + str.encode(str(n.value)) + b'\x4a'
 
-    def eraseInLine(n: CSI_K = CSI_K.FROM_CURSOR_TO_EOL) -> bytes:
+    def eraseInLine(csi_k = CSI_K.ALL_LINE) -> bytes:
         # TODO - Test
-        return CSI + str.encode(str(n.value)) + b'\x4b'
+        command = b''
+
+        if  csi_k == Layout.CSI_K.FROM_CURSOR_TO_EOL:
+            command = b'\x4b'
+
+        elif csi_k == Layout.CSI_K.FROM_SOL_TO_CURSOR:
+            command = b'\x31\x4b'
+        
+        else:
+            command = b'\x32\x4b'
+
+        return CSI + command
 
     def delete(n: int = 1) -> bytes:
         return CSI + str.encode(str(n).zfill(2)) + b'\x50'

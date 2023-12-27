@@ -1,5 +1,6 @@
 from enum import Enum
 from logging import *
+import copy
 
 from pyminitel.mode import Mode
 
@@ -89,10 +90,16 @@ class TextAttributes():
                     self.double_height = False
                     self.double_width = False
             else:
+                if double_height is not None and not double_height or double_width is not None and not double_width:
+                        data += ESC + NORMAL_SIZE
+                        if double_width is not None and not double_width:
+                            self.double_width = False
+                        else:
+                            self.double_height = False
                 if double_height:
                     data += ESC + DOUBLE_HEIGHT
                     self.double_height = True
-                elif double_width:
+                if double_width:
                     data += ESC + DOUBLE_WIDTH
                     self.double_width = True
 
@@ -115,12 +122,13 @@ class TextAttributes():
             inverted = new.inverted
         
         if self.double_height != new.double_height:
+            print('HEIGHT DIFFERENT')
             double_height = new.double_height
 
         if self.double_width != new.double_width:
             double_width = new.double_width
         
-        dump_zone = self
+        dump_zone = copy.deepcopy(self)
         return dump_zone.setAttributes(color=color, blinking=blinking, inverted=inverted, double_height=double_height, double_width=double_width)
 
 class ZoneAttributes():
@@ -174,7 +182,7 @@ class ZoneAttributes():
         if self.masking != new.masking:
             masking = new.masking
         
-        dump_zone = self
+        dump_zone = copy.deepcopy(self)
         return dump_zone.setAttributes(color=background, masking=masking, highlight=highlight)
 
 

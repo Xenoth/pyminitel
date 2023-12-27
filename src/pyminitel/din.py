@@ -1,12 +1,7 @@
 from serial import Serial, SerialException
 from logging import *
 from queue import Queue, Empty
-import sys
-import os
-import time
-import threading
-
-thread_flag = None
+import time, threading
 
 class DIN(threading.Thread):
 
@@ -19,7 +14,6 @@ class DIN(threading.Thread):
         super(DIN, self).__init__()
         self._stop_event = threading.Event()
         self.__ser = Serial(port=port, baudrate=baudrate, bytesize=7, parity='E', stopbits=1)
-        self.__ser.timeout = 5
         self.__ser.flush()
 
         self.__out_messages = Queue()
@@ -32,22 +26,30 @@ class DIN(threading.Thread):
             del self.__ser
 
     def read(self, n = int):
-        return self.__ser.read(n)
+        try:
+            return self.__ser.read(n)
+        except SerialException as e:
+            log(ERROR, e)
+            raise SerialException
 
     def put(self, data: bytes):
+        if self.stopped():
+            log(ERROR, 'Thread stopped - cannot put message')
+            raise SerialException
+        
         self.__out_messages.put(data)
 
     def open(self):
         try: 
             self.__ser.open()
-        except SerialException:
-            log(ERROR, 'serial already opened')
+        except SerialException as e :
+            log(ERROR, e)
 
     def close(self):
         try: 
             self.__ser.close()
-        except SerialException:
-            log(ERROR, 'serial already closed')
+        except SerialException as e:
+            log(ERROR, e)
 
     def flush(self):
         self.__ser.flush()
@@ -60,7 +62,7 @@ class DIN(threading.Thread):
     def getTimeout(self) -> int:
         return self.__ser.timeout
     
-    def setTimeout(self, timeout: int = 0):
+    def setTimeout(self, timeout: int = None):
         self.__ser.timeout = timeout
 
     def getBaudrate(self):
@@ -77,22 +79,28 @@ class DIN(threading.Thread):
         self.open()
 
     def run(self):
-        while not self.stopped():
-            queued_data = self.__out_messages.get()
-            n = self.__ser.write(queued_data)
-            if self.__safeWriting:
-                time.sleep(n / self.__ser.baudrate)
-                while self.__ser.out_waiting:
-                    unused = None
-            self.__out_messages.task_done()
+        run = True
+        while run:
+            try:
+                queued_data = self.__out_messages.get(timeout=1, block=True)
+                n = self.__ser.write(queued_data)
+                log(DEBUG, (n * 12 )/ self.__ser.baudrate)
+                if self.__safeWriting:
+                    time.sleep((n * 12 )/ self.__ser.baudrate)
+                    while self.__ser.out_waiting:
+                        unused = None
+                self.__out_messages.task_done()
+            except Empty:
+                log(DEBUG, 'Empty queue')
+                if self.stopped():
+                    run = False
+            except Exception as e:
+                log(ERROR, e)
+                self.stop()
+                run = False
 
     def stop(self):
         self._stop_event.set()
 
     def stopped(self):
         return self._stop_event.is_set()
-
-
-
-
-
