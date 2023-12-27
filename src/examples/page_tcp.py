@@ -9,7 +9,7 @@ minitel = None
 
 
 # minitel = get_connected_serial_minitel() # Serial comm
-minitel = get_connected_serial_minitel(ip='127.0.0.1', port='8081') # TCP comm
+minitel = get_connected_serial_minitel(ip='127.0.0.1', port='8082') # TCP comm
 if minitel is None:
     exit()
 

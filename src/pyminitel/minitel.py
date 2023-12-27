@@ -10,7 +10,7 @@ from pyminitel.mode import Mode, RESOLUTION
 from pyminitel.visualization_module import VisualizationModule
 from pyminitel.mode import Mode
 from pyminitel.keyboard import *
-from pyminitel.din import CommSerial, CommSocket
+from pyminitel.comm import CommSerial, CommSocket
 
 class MinitelException(Exception):
     # Raised on object's instanciation
@@ -502,10 +502,10 @@ class Minitel:
 
         self.send(command)
 
-        # time.sleep(.5)
 
         old_baudrate = self.__baudrate
         if type(self.__comm) == CommSerial:
+            time.sleep(.5)
             self.__comm.setBaudrate(emission_baudrate.to_int())
 
         manufacturer, model, version = None, None, None
@@ -527,7 +527,7 @@ class Minitel:
             command = self.PRO2 + self.PROG + prog_byte.to_bytes(1, 'little')
 
             self.send(command)
-            # time.sleep(.5)
+            time.sleep(.5)
 
             answer = self.read(4)
 

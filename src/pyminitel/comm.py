@@ -159,11 +159,12 @@ class CommSocket(Comm):
     def __del__(self):
         if self.__socket:
             self.close()
+            del self.__tcp
             del self.__socket
 
     def read(self, n = int):
         try:
-            return self.__tcp.read(n)
+            return self.__tcp.recv(n)
         except Exception as e:
             log(ERROR, str(e))
             raise CommException
@@ -171,13 +172,14 @@ class CommSocket(Comm):
     def open(self):
         try: 
             self.__socket.listen()
-            self.__tcp = self.__socket.accept()
+            self.__tcp, addr = self.__socket.accept()
         except Exception as e :
             log(ERROR, str(e))
             raise CommException
 
     def close(self):
         try: 
+            self.__tcp.close()
             self.__socket.close()
         except Exception as e:
             log(ERROR, str(e))
@@ -195,7 +197,7 @@ class CommSocket(Comm):
         while run:
             try:
                 queued_data = self._out_messages.get(timeout=1, block=True)
-                self.__tcp.send(queued_data)
+                self.__tcp.sendall(queued_data)
                 self._out_messages.task_done()
             except Empty:
                 if self.stopped():
