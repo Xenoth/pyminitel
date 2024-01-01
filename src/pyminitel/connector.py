@@ -14,7 +14,7 @@ def get_connected_serial_minitel(port: str = None, ip: str = None)-> Minitel:
         ports.append(port)
 
     for port in ports:
-        for bauds in [Minitel.Baudrate.BAUDS_1200, Minitel.Baudrate.BAUDS_4800, Minitel.Baudrate.BAUDS_300]:
+        for bauds in [Minitel.ConnectorBaudrate.BAUDS_1200, Minitel.ConnectorBaudrate.BAUDS_4800, Minitel.ConnectorBaudrate.BAUDS_300]:
             try:
                 minitel = Minitel(port=port, baudrate=bauds, ip=ip)
                 return minitel;

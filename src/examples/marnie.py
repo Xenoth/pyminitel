@@ -147,34 +147,30 @@ class MarniePage(Page):
             self.prompt = ''
 
     def run(self):
-        try:
-            # Disable Keyboard as soon as possible to avoir communications errors
-            self.minitel.disableKeyboard()
-            # Echo mode is a debug mode if Modem not connected - Disable 'cause using DIN connector
-            self.minitel.disableEcho()
-            self.minitel.setConnectorBaudrate(Minitel.Baudrate.BAUDS_4800, Minitel.Baudrate.BAUDS_4800)
-            self.print_page()
-            self.minitel.getMinitelInfo()
-            self.minitel.beep()
+        # Disable Keyboard as soon as possible to avoir communications errors
+        self.minitel.disableKeyboard()
+        # Echo mode is a debug mode if Modem not connected - Disable 'cause using DIN connector
+        self.minitel.disableEcho()
+        self.minitel.setConnectorBaudrate(Minitel.ConnectorBaudrate.BAUDS_4800, Minitel.ConnectorBaudrate.BAUDS_4800)
+        self.print_page()
+        self.minitel.getMinitelInfo()
+        self.minitel.beep()
 
-            self.minitel.clearBindings()
-
-
-            self.minitel.bind(FunctionKeyboardCode.Connection_Switch, callback=self.callback_quit)
-            self.minitel.bind(FunctionKeyboardCode.Send, callback=self.callback_send)
-            self.minitel.bind(FunctionKeyboardCode.Repeat, callback=self.print_page)
-            self.minitel.bind(FunctionKeyboardCode.Correction, callback=self.callback_erease)
-            self.minitel.bind(FunctionKeyboardCode.Cancel, callback=self.callback_cancel)
-
-            self.minitel.bind(FilterKeyboardCode.Any_Keys, callback=self.callback_any)
-            self.minitel.bind(FilterKeyboardCode.Printable_Keys, callback=self.callback_printable)
+        self.minitel.clearBindings()
 
 
-            self.minitel.setKeyboardMode(extended=False)
-            self.minitel.enableKeyboard()
+        self.minitel.bind(FunctionKeyboardCode.Connection_Switch, callback=self.callback_quit)
+        self.minitel.bind(FunctionKeyboardCode.Send, callback=self.callback_send)
+        self.minitel.bind(FunctionKeyboardCode.Repeat, callback=self.print_page)
+        self.minitel.bind(FunctionKeyboardCode.Correction, callback=self.callback_erease)
+        self.minitel.bind(FunctionKeyboardCode.Cancel, callback=self.callback_cancel)
 
-            while not self.stopped():
-                self.minitel.readKeyboard(0.1)
-        except Exception as e:
-            log(ERROR, e)
-            self.stop()
+        self.minitel.bind(FilterKeyboardCode.Any_Keys, callback=self.callback_any)
+        self.minitel.bind(FilterKeyboardCode.Printable_Keys, callback=self.callback_printable)
+
+
+        self.minitel.setKeyboardMode(extended=False)
+        self.minitel.enableKeyboard()
+
+        while not self.stopped():
+            self.minitel.readKeyboard(0.1)

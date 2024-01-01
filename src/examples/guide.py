@@ -34,21 +34,16 @@ class GuidePage(Page):
         self.minitel.beep()
 
     def run(self):
-        try:
-            self.minitel.disableKeyboard()
-            self.minitel.disableEcho()
-            self.minitel.hideCursor()
-            self.minitel.setVideoMode(Mode.VIDEOTEX)
-            self.print_page()
+        self.minitel.disableKeyboard()
+        self.minitel.disableEcho()
+        self.minitel.setVideoMode(Mode.VIDEOTEX)
+        self.print_page()
 
-            self.minitel.bind(FunctionKeyboardCode.Repeat, callback=self.print_page)
-            self.minitel.bind(FunctionKeyboardCode.TS_Connection_Switch, callback=self.callback_quit)
-            self.minitel.bind(FilterKeyboardCode.Any_Keys, callback=self.callback_beep)
-            
-            while not self.stopped():
-                self.minitel.readKeyboard(1)
-        except Exception as e:
-            log(ERROR, e)
-            self.stop()
+        self.minitel.bind(FunctionKeyboardCode.Repeat, callback=self.print_page)
+        self.minitel.bind(FunctionKeyboardCode.TS_Connection_Switch, callback=self.callback_quit)
+        self.minitel.bind(FilterKeyboardCode.Any_Keys, callback=self.callback_beep)
+        
+        while not self.stopped():
+            self.minitel.readKeyboard(1)
 
 

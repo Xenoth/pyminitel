@@ -101,7 +101,6 @@ def callback_send():
     global minitel
 
     minitel.disableKeyboard()
-    minitel.hideCursor()
     print(prompt)
 
     if is_code_else_ip:
@@ -114,7 +113,6 @@ def callback_send():
             service.start()
             service.join()
             minitel.disableKeyboard()
-            minitel.hideCursor()
             minitel.clearBindings()
             callback_refresh_page()
             bind()
@@ -131,7 +129,6 @@ def callback_send():
     minitel.beep()
     prompt = ''
     minitel.enableKeyboard()
-    minitel.showCursor()
 
 def callback_any():
     global minitel
@@ -143,7 +140,6 @@ def callback_guide():
     
     minitel.disableKeyboard()
     minitel.clearBindings()
-    minitel.hideCursor()
     service = GuidePage(minitel)
     service.start()
     service.join()
@@ -152,7 +148,6 @@ def callback_guide():
     callback_refresh_page()
     bind()
     minitel.enableKeyboard()
-    minitel.showCursor()
 
 def callback_printable(c: str = None):
     global prompt
@@ -179,12 +174,10 @@ def callback_cancel():
 
     if len(prompt):
         minitel.disableKeyboard()
-        minitel.hideCursor()
         minitel.send(Layout.setCursorPosition(10, 10))
         minitel.print('..............................')
         minitel.send(Layout.setCursorPosition(10, 10))
         minitel.enableKeyboard()
-        minitel.showCursor()
         prompt = ''
 
 def callback_next_previous():
@@ -192,7 +185,6 @@ def callback_next_previous():
     global is_code_else_ip
 
     minitel.disableKeyboard()
-    minitel.hideCursor()
     minitel.send(Layout.setCursorPosition(10, 1))
     if is_code_else_ip: 
         minitel.setTextAttributes(inverted=False)
@@ -210,7 +202,6 @@ def callback_next_previous():
     minitel.send(Layout.setCursorPosition(10, 10))
     callback_cancel()
     minitel.enableKeyboard()
-    minitel.showCursor()
 
 def bind():
     global minitel
@@ -240,18 +231,13 @@ with open(filepath, 'rb') as binary_file:
     binary_file.close()
 
 while 1:
-    try:
-        pool()
+    pool()
 
-        minitel.disableEcho()
-        minitel.disableKeyboard()
-        minitel.hideCursor()
-        callback_refresh_page()
-        bind()
-        minitel.enableKeyboard()
-        minitel.showCursor()
+    minitel.disableEcho()
+    minitel.disableKeyboard()
+    callback_refresh_page()
+    bind()
+    minitel.enableKeyboard()
 
-        while not disconnected and minitel:
-            minitel.readKeyboard(1)
-    except Exception as e:
-        log(ERROR, e)
+    while not disconnected and minitel:
+        minitel.readKeyboard(1)

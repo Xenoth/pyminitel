@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 from logging import log, ERROR
 from queue import Queue, Empty
 
-from serial import Serial, SerialException
+from serial import Serial, SerialException, SerialTimeoutException
 from socket import socket, AF_INET, SOCK_STREAM
 
 import time
@@ -126,19 +126,18 @@ class CommSerial(Comm):
         while run:
             try:
                 queued_data = self._out_messages.get(timeout=1, block=True)
-                n = self.__ser.write(queued_data)
-                if self.__safeWriting:
-                    time.sleep((n * 12 )/ self.__ser.baudrate)
-                    while self.__ser.out_waiting:
-                        unused = None
-                self._out_messages.task_done()
+                try:
+                    n = self.__ser.write(queued_data)
+                    if self.__safeWriting:
+                        time.sleep((n * 12 )/ self.__ser.baudrate)
+                        while self.__ser.out_waiting:
+                            pass
+                    self._out_messages.task_done()
+                except SerialTimeoutException:
+                    log(ERROR, 'Write timeout exceeded, will retry on next loop')
             except Empty:
                 if self.stopped():
                     run = False
-            except Exception as e:
-                log(ERROR, str(e))
-                self.stop()
-                run = False
 
 class CommSocket(Comm):
 
