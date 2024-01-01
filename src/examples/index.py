@@ -221,7 +221,7 @@ def bind():
 
 
 page = b''
-filepath = os.path.join('.', 'src', 'examples', 'INDEX_VGP5_.VDT')
+filepath = os.path.join('.', 'src', 'examples', 'ressources', 'INDEX_VGP5_.VDT')
 if not os.path.exists(filepath):
     log(ERROR, "File not found: " + str(filepath))
     exit()

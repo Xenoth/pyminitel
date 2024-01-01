@@ -43,4 +43,4 @@ page.setText('Correct.', 22, 33, button_attr)
 page.setText("List all local services code", 24, 9)
 page.setText(' Guide  ', 24, 33, button_attr)
 
-page.toVideotexFile(filename='INDEX', destination=os.path.join('.', 'src', 'examples'))
+page.toVideotexFile(filename='INDEX', destination=os.path.join('.', 'src', 'examples', 'ressources'))

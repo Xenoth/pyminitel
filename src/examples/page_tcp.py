@@ -17,7 +17,7 @@ minitel.disableKeyboard()
 minitel.clear()
 minitel.setScreenPageMode()
 minitel.setVideoMode(Mode.VIDEOTEX)
-filepath = os.path.join('.', 'src', 'examples', 'PAGE_VGP5_.VDT')
+filepath = os.path.join('.', 'src', 'examples', 'ressources', 'PAGE_VGP5_.VDT')
 if not os.path.exists(filepath):
     log(ERROR, "File not found: " + str(filepath))
     exit()

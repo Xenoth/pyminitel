@@ -12,7 +12,7 @@ class GuidePage(Page):
         super().__init__(minitel)
 
         self.page = b''
-        filepath = os.path.join('.', 'src', 'examples', 'GUIDE_VGP5_.VDT')
+        filepath = os.path.join('.', 'src', 'examples', 'ressources', 'GUIDE_VGP5_.VDT')
         if not os.path.exists(filepath):
             log(ERROR, "File not found: " + str(filepath))
 

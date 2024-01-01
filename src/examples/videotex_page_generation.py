@@ -70,4 +70,4 @@ textAttribute = TextAttributes()
 textAttribute.setAttributes(blinking=True)
 page.setText(text='Yiff me plenty', r=21, c=14, attribute=textAttribute)
 
-page.toVideotexFile(destination=os.path.join('.', 'src', 'examples'))
+page.toVideotexFile(destination=os.path.join('.', 'src', 'examples', 'ressources'))
