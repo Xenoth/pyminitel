@@ -1,12 +1,12 @@
 [project]
 name = "pyminitel"
-version = "0.0.9"
+version = "0.1.0"
 authors = [
     { name="Xenoth", email="xenothvalack@gmail.com" },
 ]
 description = "Minitel Python module"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -14,6 +14,7 @@ classifiers = [
 ]
 dependencies = [
     "aenum"
+    "pyserial"
 ]
 
 [project.urls]

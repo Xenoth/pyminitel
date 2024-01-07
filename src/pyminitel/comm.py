@@ -147,6 +147,7 @@ class CommSocket(Comm):
     def __init__(self, host: int, port: str, timeout: float = None):
         try:
             self.__socket = socket(AF_INET, SOCK_STREAM)
+            self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.__socket.bind((host, port))
             self.setTimeout(timeout=timeout)
             self.open()
@@ -163,7 +164,12 @@ class CommSocket(Comm):
 
     def read(self, n = int):
         try:
-            return self.__tcp.recv(n)
+            self.__socket.settimeout(self.getTimeout())
+            data = self.__tcp.recv(n)
+            self.__socket.settimeout(None)
+            return data
+        except TimeoutError:
+            return b''
         except Exception as e:
             log(ERROR, str(e))
             raise CommException
@@ -171,6 +177,7 @@ class CommSocket(Comm):
     def open(self):
         try: 
             self.__socket.listen()
+            self.__socket.settimeout(self.getTimeout())
             self.__tcp, addr = self.__socket.accept()
         except Exception as e :
             log(ERROR, str(e))
@@ -188,7 +195,6 @@ class CommSocket(Comm):
         super().flush()
     
     def setTimeout(self, timeout: int = None):
-        self.__socket.settimeout(timeout)
         super().setTimeout(timeout=timeout)
 
     def run(self):

@@ -449,7 +449,7 @@ class Minitel:
 
         answer = self.read(4)
         if answer is None or answer[0:2] != self.PRO2 or answer[2:3] != self.OPERATING_STATUS_RES:
-            log(ERROR, "Response from setProtocolTransparency's Request is invalid (got :" + str(answer.hex()) + ")")
+            log(ERROR, "Response from getModuleOperatingModeStatus's Request is invalid (got :" + str(answer.hex()) + ")")
             return None
 
         status = int.from_bytes(answer[3:4])
