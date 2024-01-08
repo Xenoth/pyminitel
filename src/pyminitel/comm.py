@@ -4,7 +4,7 @@ from logging import log, ERROR
 from queue import Queue, Empty
 
 from serial import Serial, SerialException, SerialTimeoutException
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 
 import time
 
@@ -67,10 +67,11 @@ class CommSerial(Comm):
 
     __safeWriting = None
 
-    def __init__(self, port: str, baudrate: int = 1200, safe_writing: bool = False):
+    def __init__(self, port: str, baudrate: int = 1200, safe_writing: bool = False, timeout: float = None):
         self.__ser = Serial(port=port, baudrate=baudrate, bytesize=7, parity='E', stopbits=1)
         self.__ser.flush()
         self.__safeWriting = safe_writing
+        self.setTimeout(timeout=timeout)
         super().__init__()
 
     def __del__(self):
@@ -147,7 +148,7 @@ class CommSocket(Comm):
     def __init__(self, host: int, port: str, timeout: float = None):
         try:
             self.__socket = socket(AF_INET, SOCK_STREAM)
-            self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.__socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
             self.__socket.bind((host, port))
             self.setTimeout(timeout=timeout)
             self.open()
@@ -157,9 +158,10 @@ class CommSocket(Comm):
         super().__init__()
 
     def __del__(self):
-        if self.__socket:
-            self.close()
+        self.close()
+        if self.__tcp:
             del self.__tcp
+        if self.__socket:
             del self.__socket
 
     def read(self, n = int):
@@ -179,14 +181,19 @@ class CommSocket(Comm):
             self.__socket.listen()
             self.__socket.settimeout(self.getTimeout())
             self.__tcp, addr = self.__socket.accept()
+        except TimeoutError:
+            log(ERROR, "Timeout reached")
+            raise CommException
         except Exception as e :
             log(ERROR, str(e))
             raise CommException
 
     def close(self):
         try: 
-            self.__tcp.close()
-            self.__socket.close()
+            if self.__tcp:
+                self.__tcp.close()
+            if self.__socket:
+                self.__socket.close()
         except Exception as e:
             log(ERROR, str(e))
             raise CommException

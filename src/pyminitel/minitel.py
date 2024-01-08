@@ -162,7 +162,7 @@ class Minitel:
         MINITEL_5 = 'y'
 
 
-    def __init__(self, port: str, baudrate = ConnectorBaudrate.BAUDS_1200, ip: str = None, mode: Mode = Mode.VIDEOTEX):
+    def __init__(self, port: str, baudrate = ConnectorBaudrate.BAUDS_1200, ip: str = None, mode: Mode = Mode.VIDEOTEX, timeout: float = None):
         '''
         Minitel's constructor - This function is raising MinitelException if unable to retreive basic minitel's information.
         This object will instantiate a serial communication or a TCP socket (as server) depending if "ip" argument given is None or not.
@@ -173,6 +173,7 @@ class Minitel:
                 bauderate (Minitel.ConnectorBaudrate): The bauderate of DIN's connector - Default 1200
                 ip (str): IP for TCP Socket server - When not None the constructor will attempt to use Socket - Default None
                 mode (Mode): Minitel's Mode - Default is Videotex (standard mode)
+                timeout (float): Set the comm timeout (default None)
 
             Returns:
                 Minitel instantiated object if basics minitel info retreived else raises MinitelException
@@ -180,13 +181,13 @@ class Minitel:
         '''
         if not ip:
             try:
-                self.__comm = CommSerial(port=port, baudrate=baudrate.to_int())
+                self.__comm = CommSerial(port=port, baudrate=baudrate.to_int(), timeout=timeout)
             except CommException as e:
                 log(ERROR, 'Unable to open Serial - ' + str(e))
                 raise MinitelException
         else:
             try:
-                self.__comm = CommSocket(port=int(port), host=ip)
+                self.__comm = CommSocket(port=int(port), host=ip, timeout=timeout)
             except CommException as e:
                 log(ERROR, 'Unable to create socket - ' + str(e))
                 raise MinitelException
@@ -196,7 +197,9 @@ class Minitel:
         except RuntimeError:
             log(ERROR, 'Thread of Comm already started')
         
-        self.__comm.setTimeout(.5)
+        if timeout is None:
+            self.__comm.setTimeout(.5)
+
         self.__port = port
         self.__baudrate = baudrate
 
@@ -245,7 +248,8 @@ class Minitel:
             print('* Keyboard Extended: ' + str(self.__keyboard_extended))
             print('* Keyboard C0: ' + str(self.__keyboard_c0))
 
-        self.__comm.setTimeout(None)
+        if timeout is None:
+            self.__comm.setTimeout(None)
     
     def __del__(self):
         if self.__comm:

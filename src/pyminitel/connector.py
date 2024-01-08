@@ -4,7 +4,7 @@ from serial import Serial, SerialException
 from logging import log, ERROR
 import glob, sys
 
-def get_connected_serial_minitel(port: str = None, ip: str = None)-> Minitel:
+def get_connected_serial_minitel(port: str = None, ip: str = None, timeout: float = None)-> Minitel:
     minitel = None
     ports = []
 
@@ -16,7 +16,7 @@ def get_connected_serial_minitel(port: str = None, ip: str = None)-> Minitel:
     for port in ports:
         for bauds in [Minitel.ConnectorBaudrate.BAUDS_1200, Minitel.ConnectorBaudrate.BAUDS_4800, Minitel.ConnectorBaudrate.BAUDS_300]:
             try:
-                minitel = Minitel(port=port, baudrate=bauds, ip=ip)
+                minitel = Minitel(port=port, baudrate=bauds, ip=ip, timeout=timeout)
                 return minitel;
             except MinitelException:
                 log(ERROR, 'Minitel not connected on ' + str(bauds.to_int()) + ' bauds.')
