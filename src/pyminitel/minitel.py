@@ -1,4 +1,4 @@
-import time
+import time, socket
 
 from enum import Enum
 from logging import log, ERROR, WARNING, INFO
@@ -162,7 +162,7 @@ class Minitel:
         MINITEL_5 = 'y'
 
 
-    def __init__(self, port: str, baudrate = ConnectorBaudrate.BAUDS_1200, ip: str = None, mode: Mode = Mode.VIDEOTEX, timeout: float = None):
+    def __init__(self, port: str, baudrate = ConnectorBaudrate.BAUDS_1200, ip: str = None, mode: Mode = Mode.VIDEOTEX, timeout: float = None, tcp: socket = None):
         '''
         Minitel's constructor - This function is raising MinitelException if unable to retreive basic minitel's information.
         This object will instantiate a serial communication or a TCP socket (as server) depending if "ip" argument given is None or not.
@@ -179,7 +179,7 @@ class Minitel:
                 Minitel instantiated object if basics minitel info retreived else raises MinitelException
 
         '''
-        if not ip:
+        if not ip and not tcp:
             try:
                 self.__comm = CommSerial(port=port, baudrate=baudrate.to_int(), timeout=timeout)
             except CommException as e:
@@ -187,7 +187,10 @@ class Minitel:
                 raise MinitelException
         else:
             try:
-                self.__comm = CommSocket(port=int(port), host=ip, timeout=timeout)
+                int_port = None
+                if port:
+                    int_port = int(port)
+                self.__comm = CommSocket(port=int_port, host=ip, timeout=timeout, tcp=tcp)
             except CommException as e:
                 log(ERROR, 'Unable to create socket - ' + str(e))
                 raise MinitelException
@@ -198,7 +201,7 @@ class Minitel:
             log(ERROR, 'Thread of Comm already started')
         
         if timeout is None:
-            self.__comm.setTimeout(.5)
+            self.__comm.setTimeout(10)
 
         self.__port = port
         self.__baudrate = baudrate
@@ -420,6 +423,7 @@ class Minitel:
             return None
 
         answer = self.read(5)
+        log(ERROR, str(answer))
         if answer is None or answer[0:1] != self.SOH or answer[4:5] != self.EOT:
             log(ERROR, "Response from getMinitelInfo's Request is invalid (got :" + str(answer.hex()) + ")")
             return None
@@ -550,6 +554,10 @@ class Minitel:
         return -1 
 
     def setConnectorBaudrate(self, emission_baudrate = ConnectorBaudrate.BAUDS_1200, reception_baudrate = ConnectorBaudrate.BAUDS_1200) -> tuple:
+        if isinstance(self.__comm, CommSocket):
+            log(ERROR, "Baudrate not handled for socket comm")
+            return None
+        
         if emission_baudrate != reception_baudrate and self.__model == self.Model.MINITEL_1B:
             log(ERROR, "Emission and Reception Baudrate must be symetrical for Minitel 1B Models")
             return None

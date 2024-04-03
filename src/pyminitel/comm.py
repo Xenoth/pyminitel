@@ -1,6 +1,6 @@
 from threading import Thread, Event
 from abc import ABCMeta, abstractmethod
-from logging import log, ERROR
+from logging import log, ERROR, WARNING
 from queue import Queue, Empty
 
 from serial import Serial, SerialException, SerialTimeoutException
@@ -145,16 +145,15 @@ class CommSocket(Comm):
     __socket = None
     __tcp = None
 
-    def __init__(self, host: int, port: str, timeout: float = None):
-        try:
+    def __init__(self, host: int, port: str, timeout: float = None, tcp: socket = None):
+        self.setTimeout(timeout=timeout)
+        if not tcp:
             self.__socket = socket(AF_INET, SOCK_STREAM)
             self.__socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
             self.__socket.bind((host, port))
-            self.setTimeout(timeout=timeout)
             self.open()
-        except Exception as e:
-            log(ERROR, str(e))
-            raise CommException
+        else:
+            self.__tcp = tcp
         super().__init__()
 
     def __del__(self):
@@ -166,37 +165,38 @@ class CommSocket(Comm):
 
     def read(self, n = int):
         try:
-            self.__socket.settimeout(self.getTimeout())
-            data = self.__tcp.recv(n)
-            self.__socket.settimeout(None)
+            self.__tcp.settimeout(self.getTimeout())
+            got = 0
+            data_got = b''
+            data = b''
+            while got < n:
+                data_got = self.__tcp.recv(n)
+                got += len(data_got)
+                data += data_got
+            self.__tcp.settimeout(None)
             return data
-        except TimeoutError:
+        except TimeoutError as e:
+            log(level=WARNING, msg="Timeout caught: " + str(e) + ", returning b''")
             return b''
         except Exception as e:
             log(ERROR, str(e))
             raise CommException
 
     def open(self):
-        try: 
-            self.__socket.listen()
-            self.__socket.settimeout(self.getTimeout())
-            self.__tcp, addr = self.__socket.accept()
-        except TimeoutError:
-            log(ERROR, "Timeout reached")
-            raise CommException
-        except Exception as e :
-            log(ERROR, str(e))
-            raise CommException
+        if self.__socket:
+            try: 
+                self.__socket.listen()
+                self.__socket.settimeout(self.getTimeout())
+                self.__tcp, addr = self.__socket.accept()
+            except TimeoutError:
+                log(ERROR, "Timeout reached")
+                raise CommException
 
     def close(self):
-        try: 
-            if self.__tcp:
-                self.__tcp.close()
-            if self.__socket:
-                self.__socket.close()
-        except Exception as e:
-            log(ERROR, str(e))
-            raise CommException
+        if self.__tcp:
+            self.__tcp.close()
+        if self.__socket:
+            self.__socket.close()
 
     def flush(self):
         super().flush()

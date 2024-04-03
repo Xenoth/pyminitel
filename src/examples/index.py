@@ -35,7 +35,7 @@ def pool() -> Minitel:
 
     minitel = None
     while minitel is None:
-        minitel = get_connected_serial_minitel()
+        minitel = minitel = get_connected_serial_minitel(ip='0.0.0.0', port='8083') # TCP comm
         
     disconnected = False
 
@@ -235,6 +235,8 @@ while 1:
 
     minitel.disableEcho()
     minitel.disableKeyboard()
+    minitel.setVideoMode(Mode.VIDEOTEX)
+    minitel.setScreenPageMode()
     callback_refresh_page()
     bind()
     minitel.enableKeyboard()
