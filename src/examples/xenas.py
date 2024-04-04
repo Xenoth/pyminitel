@@ -30,7 +30,7 @@ class PopupLevel(Enum):
     ERROR = 2
 
 def on_new_client(client_socket, addr):
-    
+    log(level=INFO, msg="New client: " + str(addr))
     minitel = None
     disconnected = False
     prompt = ''
@@ -237,6 +237,7 @@ def on_new_client(client_socket, addr):
             minitel.readKeyboard(1)
 
     client_socket.close()
+    log(level=INFO, msg="client disconnected: " + str(addr))
 
 xenas_socket = socket.socket()
 host = "0.0.0.0"
