@@ -1,6 +1,6 @@
 from threading import Thread, Event
 from abc import ABCMeta, abstractmethod
-from logging import log, ERROR, WARNING
+from logging import log, ERROR, DEBUG
 from queue import Queue, Empty
 
 from serial import Serial, SerialException, SerialTimeoutException
@@ -9,6 +9,9 @@ from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 import time
 
 class CommException(Exception):
+    pass
+
+class MinitelDisconnectedException(Exception):
     pass
 
 class Comm(Thread, metaclass=ABCMeta):
@@ -171,16 +174,15 @@ class CommSocket(Comm):
             data = b''
             while got < n:
                 data_got = self.__tcp.recv(n)
+                if data_got is None:
+                    raise MinitelDisconnectedException()
                 got += len(data_got)
                 data += data_got
             self.__tcp.settimeout(None)
             return data
         except TimeoutError as e:
-            log(level=WARNING, msg="Timeout caught: " + str(e) + ", returning b''")
+            log(level=DEBUG, msg="Timeout caught: " + str(e) + ", returning b''")
             return b''
-        except Exception as e:
-            log(ERROR, str(e))
-            raise CommException
 
     def open(self):
         if self.__socket:

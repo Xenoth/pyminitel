@@ -1,7 +1,6 @@
 # echo-client.py
 
 import socket
-from time import sleep
 
 HOST = "xenoth.fr"  # The server's hostname or IP address
 PORT = 8083  # The port used by the server

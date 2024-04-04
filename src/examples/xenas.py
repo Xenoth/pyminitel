@@ -240,7 +240,7 @@ def on_new_client(client_socket, addr):
     logging.log(level=logging.INFO, msg="client disconnected: " + str(addr))
 
 xenas_socket = socket.socket()
-host = "0.0.0.0"
+host = ""
 port = 8083
 
 logging.getLogger().setLevel(level=logging.INFO)
@@ -248,12 +248,14 @@ logging.getLogger().setLevel(level=logging.INFO)
 logging.log(level=logging.INFO, msg='Server started')
 logging.log(level=logging.INFO, msg='Waiting for clients...')
 
-xenas_socket.bind((host, port))
-xenas_socket.listen()
 
-while True:
-    c, addr = xenas_socket.accept()
-    _thread.start_new_thread(on_new_client, (c, addr))
+try:
+    xenas_socket.bind((host, port))
+    xenas_socket.listen()
 
-xenas_socket.close()
-log(level=ERROR, msg='Server stoped')
+    while True:
+        c, addr = xenas_socket.accept()
+        _thread.start_new_thread(on_new_client, (c, addr))
+finally:
+    xenas_socket.close()
+    logging.log(level=logging.ERROR, msg='Server stoped')
