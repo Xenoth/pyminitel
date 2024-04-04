@@ -1,7 +1,7 @@
-import os, ipaddress, socket, _thread
+import os, ipaddress, socket, _thread, logging
 
 from enum import Enum
-from logging import log, ERROR, INFO
+
 
 from pyminitel.connector import get_connected_serial_minitel
 from pyminitel.minitel import Minitel
@@ -30,7 +30,7 @@ class PopupLevel(Enum):
     ERROR = 2
 
 def on_new_client(client_socket, addr):
-    log(level=INFO, msg="New client: " + str(addr))
+    logging.log(level=logging.INFO, msg="New client: " + str(addr))
     minitel = None
     disconnected = False
     prompt = ''
@@ -215,7 +215,7 @@ def on_new_client(client_socket, addr):
     page = b''
     filepath = os.path.join('.', 'src', 'examples', 'ressources', 'INDEX_VGP5_.VDT')
     if not os.path.exists(filepath):
-        log(ERROR, "File not found: " + str(filepath))
+        logging.log(logging.ERROR, "File not found: " + str(filepath))
         exit()
 
     with open(filepath, 'rb') as binary_file:
@@ -237,14 +237,16 @@ def on_new_client(client_socket, addr):
             minitel.readKeyboard(1)
 
     client_socket.close()
-    log(level=INFO, msg="client disconnected: " + str(addr))
+    logging.log(level=logging.INFO, msg="client disconnected: " + str(addr))
 
 xenas_socket = socket.socket()
 host = "0.0.0.0"
 port = 8083
 
-log(level=INFO, msg='Server started')
-log(level=INFO, msg='Waiting for clients...')
+logging.getLogger().setLevel(level=logging.INFO)
+
+logging.log(level=logging.INFO, msg='Server started')
+logging.log(level=logging.INFO, msg='Waiting for clients...')
 
 xenas_socket.bind((host, port))
 xenas_socket.listen()
