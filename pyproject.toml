@@ -1,6 +1,6 @@
 [project]
 name = "pyminitel"
-version = "0.1.2"
+version = "0.1.4"
 authors = [
     { name="Xenoth", email="xenothvalack@gmail.com" },
 ]
@@ -14,7 +14,9 @@ classifiers = [
 ]
 dependencies = [
     "aenum",
-    "pyserial"
+    "pyserial",
+    "pillow",
+    "requests"
 ]
 
 [project.urls]

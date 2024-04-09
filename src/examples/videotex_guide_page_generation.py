@@ -48,8 +48,19 @@ page.setText("02", 9, 2)
 page.setText("RAINBOW", 9, 6)
 page.setText("FREE", 9, 35)
 
-page.drawBox(10, 6, 3, 35, desc_attr)
+page.drawBox(10, 6, 2, 35, desc_attr)
 page.setText('Taste the rainbow!',10, 7)
 page.setText('>Merci les lesbiennes',11, 7)
+
+page.drawBox(12, 1, 1, 40, item_attr)
+page.setText("03", 12, 2)
+page.setText("HELL", 12, 6)
+page.setText("69", 12, 35)
+
+page.drawBox(13, 6, 4, 35, desc_attr)
+page.setText('Galactic War Map Status:',13, 7)
+page.setText("VST Halo of Redemption's COMM",14, 7)
+page.setText(" COMM",15, 7)
+page.setText('>FOR DEMOCRACY',16, 7)
 
 page.toVideotexFile(filename='GUIDE', destination=os.path.join('.', 'src', 'examples', 'ressources'))

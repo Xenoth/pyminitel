@@ -12,6 +12,7 @@ from pyminitel.attributes import BackgroundColor, CharacterColor
 
 from examples.marnie import MarniePage
 from examples.rainbow import RainbowPage
+from examples.helldivers import HelldiversPage
 from examples.guide import GuidePage
 
 
@@ -23,6 +24,10 @@ SERVICES = {
     'rainbow': RainbowPage,
     '02': RainbowPage,
     '2': RainbowPage,
+
+    'hell': HelldiversPage,
+    '03': HelldiversPage,
+    '3': HelldiversPage,
 }
 
 class PopupLevel(Enum):
