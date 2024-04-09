@@ -93,14 +93,14 @@ def on_new_client(client_socket, addr, minitel, srv_ctx):
         nonlocal minitel
 
         minitel.disableKeyboard()
-        print(prompt)
+        print(srv_ctx.prompt)
 
         if srv_ctx.is_code_else_ip:
-            if prompt.lower() not in SERVICES:
-                print_message('SERVICE "' + prompt + '" NOT FOUND ', level=PopupLevel.ERROR)
+            if srv_ctx.prompt.lower() not in SERVICES:
+                print_message('SERVICE "' + srv_ctx.prompt + '" NOT FOUND ', level=PopupLevel.ERROR)
             else:
                 print_message('SERVICE FOUND ')
-                service = SERVICES[prompt.lower()](minitel)
+                service = SERVICES[srv_ctx.prompt.lower()](minitel)
                 minitel.clearBindings()
                 service.start()
                 service.join()
@@ -110,7 +110,7 @@ def on_new_client(client_socket, addr, minitel, srv_ctx):
                 bind()
         else:
             try:
-                ipaddress.ip_address(prompt)
+                ipaddress.ip_address(srv_ctx.prompt)
                 print_message('IP VALID ')
             except ValueError:
                 print_message('IP UNVALID ', level=PopupLevel.ERROR)
@@ -119,7 +119,7 @@ def on_new_client(client_socket, addr, minitel, srv_ctx):
         minitel.print('..............................')
         minitel.send(Layout.setCursorPosition(10, 10))
         minitel.beep()
-        prompt = ''
+        srv_ctx.prompt = ''
         minitel.enableKeyboard()
 
     def callback_any():
@@ -146,7 +146,7 @@ def on_new_client(client_socket, addr, minitel, srv_ctx):
         nonlocal minitel
         if c is not None:
             if len(srv_ctx.prompt) < 18:
-                prompt += c
+                srv_ctx.prompt += c
                 minitel.print(c)
 
 
