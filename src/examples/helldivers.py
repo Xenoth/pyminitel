@@ -127,6 +127,7 @@ class HelldiversPage(Page):
         self.minitel.bind(FunctionKeyboardCode.Summary, callback=self.callback_quit)
         self.minitel.bind(FunctionKeyboardCode.Repeat, callback=self.print_page)
 
-        self.minitel.enableKeyboard()
+        self.minitel.hideCursor()
+        self.minitel.enableKeyboard(update_cursor=False)
         while not self.stopped():
             self.minitel.readKeyboard(0.1)

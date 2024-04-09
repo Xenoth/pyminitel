@@ -60,7 +60,7 @@ page.setText("69", 12, 35)
 page.drawBox(13, 6, 4, 35, desc_attr)
 page.setText('Galactic War Map Status:',13, 7)
 page.setText("VST Halo of Redemption's",14, 7)
-page.setText(" COMM",14, 7)
+page.setText("COMM",15, 7)
 page.setText('>FOR DEMOCRACY',16, 7)
 
 page.toVideotexFile(filename='GUIDE', destination=os.path.join('.', 'src', 'examples', 'ressources'))

@@ -27,6 +27,7 @@ class GuidePage(Page):
         self.minitel.getMinitelInfo()
 
     def callback_quit(self):
+        self.minitel.beep()
         self.minitel.getMinitelInfo()
         self.stop()
 
@@ -45,7 +46,8 @@ class GuidePage(Page):
         self.minitel.bind(FunctionKeyboardCode.Summary, callback=self.callback_quit)
         self.minitel.bind(FilterKeyboardCode.Any_Keys, callback=self.callback_beep)
     
-        self.minitel.enableKeyboard()
+        self.minitel.hideCursor()
+        self.minitel.enableKeyboard(update_cursor=False)
         while not self.stopped():
             self.minitel.readKeyboard(0.1)
 
