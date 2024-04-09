@@ -24,7 +24,7 @@ class RainbowPage(Page):
         self.minitel.setScreenRollMode()
         self.minitel.newLine()
 
-        self.minitel.bind(FunctionKeyboardCode.TS_Connection_Switch, callback=self.callback_quit)
+        self.minitel.bind(FunctionKeyboardCode.Summary, callback=self.callback_quit)
         self.minitel.bind(FilterKeyboardCode.Any_Keys, callback=self.callback_beep)
         self.minitel.enableKeyboard()
 

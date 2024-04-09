@@ -159,7 +159,7 @@ class MarniePage(Page):
         self.minitel.clearBindings()
 
 
-        self.minitel.bind(FunctionKeyboardCode.Connection_Switch, callback=self.callback_quit)
+        self.minitel.bind(FunctionKeyboardCode.Summary, callback=self.callback_quit)
         self.minitel.bind(FunctionKeyboardCode.Send, callback=self.callback_send)
         self.minitel.bind(FunctionKeyboardCode.Repeat, callback=self.print_page)
         self.minitel.bind(FunctionKeyboardCode.Correction, callback=self.callback_erease)

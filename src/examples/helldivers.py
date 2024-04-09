@@ -124,7 +124,7 @@ class HelldiversPage(Page):
 
         self.minitel.clearBindings()
 
-        self.minitel.bind(FunctionKeyboardCode.Connection_Switch, callback=self.callback_quit)
+        self.minitel.bind(FunctionKeyboardCode.Summary, callback=self.callback_quit)
         self.minitel.bind(FunctionKeyboardCode.Repeat, callback=self.print_page)
 
         while not self.stopped():
