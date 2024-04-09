@@ -423,7 +423,6 @@ class Minitel:
             return None
 
         answer = self.read(5)
-        log(ERROR, str(answer))
         if answer is None or answer[0:1] != self.SOH or answer[4:5] != self.EOT:
             log(ERROR, "Response from getMinitelInfo's Request is invalid (got :" + str(answer.hex()) + ")")
             return None

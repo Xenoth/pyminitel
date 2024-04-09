@@ -1,4 +1,4 @@
-import os, ipaddress, socket, _thread, logging
+import os, sys, ipaddress, socket, _thread, logging
 
 from enum import Enum
 
@@ -29,12 +29,14 @@ class PopupLevel(Enum):
     INFO = 1
     ERROR = 2
 
-def on_new_client(client_socket, addr):
+class ServiceContext():
+    def __init__(self) -> None:
+        self.disconnected = False
+        self.prompt = ''
+        self.is_code_else_ip = True 
+
+def on_new_client(client_socket, addr, minitel, srv_ctx):
     logging.log(level=logging.INFO, msg="New client: " + str(addr))
-    minitel = None
-    disconnected = False
-    prompt = ''
-    is_code_else_ip = True 
 
     def print_message(text: str = '', level: PopupLevel = PopupLevel.INFO):
         minitel.send(Layout.setCursorPosition(12, 5))
@@ -51,18 +53,16 @@ def on_new_client(client_socket, addr):
             minitel.setTextAttributes(color=CharacterColor.WHITE)
         minitel.send(Layout.setCursorPosition(10, 10))
 
-
-
     def callback_quit():
         nonlocal minitel
-        nonlocal disconnected
+        nonlocal srv_ctx
 
         minitel.clear()
         minitel.print('Disconnected - Goodnight')
         minitel.beep()
         minitel.getMinitelInfo()
         del minitel
-        disconnected = True
+        srv_ctx.disconnected = True
 
     def callback_refresh_page():
         nonlocal minitel
@@ -73,7 +73,7 @@ def on_new_client(client_socket, addr):
         minitel.setVideoMode(Mode.VIDEOTEX)
         minitel.send(page)
 
-        if not is_code_else_ip:
+        if not srv_ctx.is_code_else_ip:
             minitel.send(Layout.setCursorPosition(10,1))
             minitel.setTextAttributes(inverted=False)
             minitel.print('CODE|')
@@ -83,19 +83,19 @@ def on_new_client(client_socket, addr):
 
 
         minitel.send(Layout.setCursorPosition(10, 10))
-        if len(prompt):
-            minitel.print(prompt)
+        if len(srv_ctx.prompt):
+            minitel.print(srv_ctx.prompt)
         
         minitel.beep()
 
     def callback_send():
-        nonlocal prompt
+        nonlocal srv_ctx
         nonlocal minitel
 
         minitel.disableKeyboard()
         print(prompt)
 
-        if is_code_else_ip:
+        if srv_ctx.is_code_else_ip:
             if prompt.lower() not in SERVICES:
                 print_message('SERVICE "' + prompt + '" NOT FOUND ', level=PopupLevel.ERROR)
             else:
@@ -142,43 +142,43 @@ def on_new_client(client_socket, addr):
         minitel.enableKeyboard()
 
     def callback_printable(c: str = None):
-        nonlocal prompt
+        nonlocal srv_ctx
         nonlocal minitel
         if c is not None:
-            if len(prompt) < 18:
+            if len(srv_ctx.prompt) < 18:
                 prompt += c
                 minitel.print(c)
 
 
     def callback_erease():
-        nonlocal prompt
+        nonlocal srv_ctx
         nonlocal minitel
 
-        if len(prompt):
+        if len(srv_ctx.prompt):
             minitel.send(Layout.moveCursorLeft(1))
             minitel.print('.')
             minitel.send(Layout.moveCursorLeft(1))
-            prompt = prompt[:-1]
+            srv_ctx.prompt = srv_ctx.prompt[:-1]
 
     def callback_cancel():
-        nonlocal prompt
+        nonlocal srv_ctx
         nonlocal minitel
 
-        if len(prompt):
+        if len(srv_ctx.prompt):
             minitel.disableKeyboard()
             minitel.send(Layout.setCursorPosition(10, 10))
             minitel.print('..............................')
             minitel.send(Layout.setCursorPosition(10, 10))
             minitel.enableKeyboard()
-            prompt = ''
+            srv_ctx.prompt = ''
 
     def callback_next_previous():
         nonlocal minitel
-        nonlocal is_code_else_ip
+        nonlocal srv_ctx
 
         minitel.disableKeyboard()
         minitel.send(Layout.setCursorPosition(10, 1))
-        if is_code_else_ip: 
+        if srv_ctx.is_code_else_ip: 
             minitel.setTextAttributes(inverted=False)
             minitel.print('CODE|')
             minitel.setTextAttributes(inverted=True)
@@ -190,7 +190,7 @@ def on_new_client(client_socket, addr):
             minitel.setTextAttributes(inverted=False)
             minitel.print('|IP')
 
-        is_code_else_ip = not is_code_else_ip
+        srv_ctx.is_code_else_ip = not srv_ctx.is_code_else_ip
         minitel.send(Layout.setCursorPosition(10, 10))
         callback_cancel()
         minitel.enableKeyboard()
@@ -224,38 +224,46 @@ def on_new_client(client_socket, addr):
 
     minitel = get_connected_serial_minitel(tcp=client_socket)
     
-    while not disconnected and minitel:
+    while not srv_ctx.disconnected and minitel:
         minitel.disableEcho()
         minitel.disableKeyboard()
-        minitel.setVideoMode(Mode.VIDEOTEX)
         minitel.setScreenPageMode()
         callback_refresh_page()
         bind()
         minitel.enableKeyboard()
 
-        while not disconnected and minitel:
+        while not srv_ctx.disconnected and minitel:
             minitel.readKeyboard(1)
 
     client_socket.close()
     logging.log(level=logging.INFO, msg="client disconnected: " + str(addr))
 
-xenas_socket = socket.socket()
-host = ""
-port = 8083
+def main() -> int:
 
-logging.getLogger().setLevel(level=logging.INFO)
+    logging.getLogger().setLevel(level=logging.INFO)
 
-logging.log(level=logging.INFO, msg='Server started')
-logging.log(level=logging.INFO, msg='Waiting for clients...')
+    host = "0.0.0.0"
+    port = 8083
 
+    try:
+        xenas_socket = socket.socket()
+        xenas_socket.bind((host, port))
 
-try:
-    xenas_socket.bind((host, port))
-    xenas_socket.listen()
+        logging.log(level=logging.INFO, msg='Server started')
+        logging.log(level=logging.INFO, msg='Waiting for clients...')
 
-    while True:
-        c, addr = xenas_socket.accept()
-        _thread.start_new_thread(on_new_client, (c, addr))
-finally:
-    xenas_socket.close()
-    logging.log(level=logging.ERROR, msg='Server stoped')
+        xenas_socket.listen()
+        xenas_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        while True:
+            c, addr = xenas_socket.accept()
+            _thread.start_new_thread(on_new_client, (c, addr, None, ServiceContext()))
+    except Exception as e:
+        logging.log(level=logging.ERROR, msg='Server caught Exception: ' + str(e))
+    finally:
+        xenas_socket.close()
+        logging.log(level=logging.ERROR, msg='Server stopped')
+        return -1
+    
+if __name__ == '__main__':
+    sys.exit(main())  # next section explains the use of sys.exit
