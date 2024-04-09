@@ -39,13 +39,14 @@ class GuidePage(Page):
         self.minitel.setVideoMode(Mode.VIDEOTEX)
         self.print_page()
 
+        self.minitel.clearBindings()
+        
         self.minitel.bind(FunctionKeyboardCode.Repeat, callback=self.print_page)
         self.minitel.bind(FunctionKeyboardCode.Summary, callback=self.callback_quit)
         self.minitel.bind(FilterKeyboardCode.Any_Keys, callback=self.callback_beep)
-        
-        
+    
         self.minitel.enableKeyboard()
         while not self.stopped():
-            self.minitel.readKeyboard(1)
+            self.minitel.readKeyboard(0.1)
 
 
