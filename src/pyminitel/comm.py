@@ -186,7 +186,7 @@ class CommSocket(Comm):
             self.__tcp.settimeout(None)
             return data
         except TimeoutError as e:
-            log(level=DEBUG, msg="Timeout caught: " + str(e) + ", returning b''")
+            # log(level=DEBUG, msg="Timeout caught: " + str(e) + ", returning b''")
             return b''
 
     def open(self):
