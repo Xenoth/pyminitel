@@ -195,7 +195,7 @@ class Minitel:
                 log(ERROR, 'Unable to create socket - ' + str(e))
                 raise MinitelException
         
-        log(level=DEBUG, msg='New Comm: id ' + id(self.__comm))
+        log(level=DEBUG, msg='New Comm: id ' + str(id(self.__comm)))
 
         try:
             self.__comm.start()
