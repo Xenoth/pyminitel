@@ -920,15 +920,15 @@ class Minitel:
             self.__filter_bindings[FilterKeyboardCode.Any_Keys]()
             callback_called = True
 
-            try:
-                char = VideotexKeyboardCode(data).char()
-                if str.isprintable(char):
-                    if self.__filter_bindings[FilterKeyboardCode.Printable_Keys]:
-                        self.__filter_bindings[FilterKeyboardCode.Printable_Keys](char)
-                        callback_called = True
-            except ValueError as e:
-                log(DEBUG, 'data is not a VideotexKeyboardCode')
-                pass
+        try:
+            char = VideotexKeyboardCode(data).char()
+            if str.isprintable(char):
+                if self.__filter_bindings[FilterKeyboardCode.Printable_Keys]:
+                    self.__filter_bindings[FilterKeyboardCode.Printable_Keys](char)
+                    callback_called = True
+        except ValueError as e:
+            log(DEBUG, 'data is not a VideotexKeyboardCode')
+            pass
         
 
         if data in self.__bindings:
