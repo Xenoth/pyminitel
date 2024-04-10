@@ -866,10 +866,10 @@ class Minitel:
     def bind(self, key: KeyboardCode, callback):
 
         if isinstance(key, FilterKeyboardCode):
-            self.__filter_bindings[key] = callback
+            self.__filter_bindings[key] = copy.copy(callback)
             return
 
-        self.__bindings[key] = callback
+        self.__bindings[key] = copy.copy(callback)
 
     def clearBindings(self):
         for filter in self.__filter_bindings:
