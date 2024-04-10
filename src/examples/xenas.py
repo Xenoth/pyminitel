@@ -41,6 +41,7 @@ class ServiceContext():
         self.is_code_else_ip = True 
 
 def on_new_client(client_socket, addr, minitel, srv_ctx):
+    logging.log(level=logging.DEBUG, msg='on new client thread started: id ' + str(_thread.get_native_id()))
     logging.log(level=logging.INFO, msg="New client: " + str(addr))
 
     def print_message(text: str = '', level: PopupLevel = PopupLevel.INFO):
@@ -228,6 +229,8 @@ def on_new_client(client_socket, addr, minitel, srv_ctx):
         binary_file.close()
 
     minitel = get_connected_serial_minitel(tcp=client_socket)
+    logging.log(level=logging.DEBUG, msg='new minitel object: id ' + str(id(minitel)))
+    logging.log(level=logging.DEBUG, msg='Service context object: id ' + str(id(srv_ctx)))
     
     while not srv_ctx.disconnected and minitel:
         minitel.disableEcho()
@@ -245,7 +248,7 @@ def on_new_client(client_socket, addr, minitel, srv_ctx):
 
 def main() -> int:
 
-    logging.getLogger().setLevel(level=logging.INFO)
+    logging.getLogger().setLevel(level=logging.DEBUG)
 
     host = "0.0.0.0"
     port = 8083

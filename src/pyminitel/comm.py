@@ -22,6 +22,9 @@ class Comm(Thread, metaclass=ABCMeta):
     def __init__(self):
         self.__stop_event = Event()
         self._out_messages = Queue()
+
+        log(level=DEBUG, msg='Event object: id ' + str(id(self.__stop_event)))
+        log(level=DEBUG, msg='Queue object: id ' + str(id(self._out_messages)))
         super().__init__()
 
     def put(self, data: bytes):
@@ -126,6 +129,8 @@ class CommSerial(Comm):
         self.open()
 
     def run(self):
+
+        log(level=DEBUG, msg='Started Comm thread: id ' + Thread.native_id())
         run = True
         while run:
             try:
