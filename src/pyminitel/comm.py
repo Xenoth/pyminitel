@@ -16,10 +16,11 @@ class MinitelDisconnectedException(Exception):
 
 class Comm(Thread, metaclass=ABCMeta):
 
-    _out_messages = None
-    __timeout = None
-
     def __init__(self):
+
+        _out_messages = None
+        _timeout = None
+
         self.__stop_event = Event()
         self._out_messages = Queue()
 
@@ -41,10 +42,10 @@ class Comm(Thread, metaclass=ABCMeta):
         return self.__stop_event.is_set()
 
     def getTimeout(self) -> int:
-        return self.__timeout
+        return self._timeout
     
     def setTimeout(self, timeout: int = None):
-        self.__timeout = timeout
+        self._timeout = timeout
 
     def flush(self):
         try:

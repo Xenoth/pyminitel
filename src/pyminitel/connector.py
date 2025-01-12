@@ -16,8 +16,7 @@ def get_connected_serial_minitel(port: str = None, ip: str = None, timeout: floa
     for port in ports:
         for bauds in [Minitel.ConnectorBaudrate.BAUDS_1200, Minitel.ConnectorBaudrate.BAUDS_4800, Minitel.ConnectorBaudrate.BAUDS_300]:
             try:
-                minitel = Minitel(port=port, baudrate=bauds, ip=ip, timeout=timeout, tcp=tcp)
-                return minitel;
+                return Minitel(port=port, baudrate=bauds, ip=ip, timeout=timeout, tcp=tcp)
             except MinitelException as e :
                 log(ERROR, 'Minitel not connected on ' + str(bauds.to_int()) + ' bauds.')
                 log(level=ERROR, msg=str(e))

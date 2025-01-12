@@ -21,34 +21,6 @@ class Minitel:
     Pyminitel Minitel class
     '''
 
-    __port = None
-    __baudrate = None
-    __comm = None
-
-    __manufacturer = None
-    __model = None
-    __fw_version = None
-
-    __keyboard_extended = None
-    __keyboard_c0 = None
-    __keyboard_caps_enabled = None
-    __pce_enabled = None
-    __roll_mode_enabled = None
-    __mode = None
-    __vm = None
-
-    # TODO - Warning on insersion or suppression when double sizes
-    __text_attribute = None
-    __zone_attribute = None
-
-    __filter_bindings = {
-        FilterKeyboardCode.Any_Keys: None,
-        FilterKeyboardCode.Printable_Keys: None,
-        FilterKeyboardCode.Other_Keys: None,
-        FilterKeyboardCode.No_Keys : None,
-    }
-    __bindings = None
-
     class ConnectorBaudrate(Enum):
         BAUDS_300 = 2
         BAUDS_1200 = 4
@@ -179,9 +151,38 @@ class Minitel:
                 Minitel instantiated object if basics minitel info retreived else raises MinitelException
 
         '''
+
+        self._port = None
+        self._baudrate = None
+        self._comm = None
+
+        self._manufacturer = None
+        self._model = None
+        self._fw_version = None
+
+        self._keyboard_extended = None
+        self._keyboard_c0 = None
+        self._keyboard_caps_enabled = None
+        self._pce_enabled = None
+        self._roll_mode_enabled = None
+        self._mode = None
+        self._vm = None
+
+        # TODO - Warning on insersion or suppression when double sizes
+        self._text_attribute = None
+        self._zone_attribute = None
+
+        self._filter_bindings = {
+            FilterKeyboardCode.Any_Keys: None,
+            FilterKeyboardCode.Printable_Keys: None,
+            FilterKeyboardCode.Other_Keys: None,
+            FilterKeyboardCode.No_Keys : None,
+        }
+        self._bindings = None
+
         if not ip and not tcp:
             try:
-                self.__comm = CommSerial(port=port, baudrate=baudrate.to_int(), timeout=timeout)
+                self._comm = CommSerial(port=port, baudrate=baudrate.to_int(), timeout=timeout)
             except CommException as e:
                 log(ERROR, 'Unable to open Serial - ' + str(e))
                 raise MinitelException
@@ -190,28 +191,28 @@ class Minitel:
                 int_port = None
                 if port:
                     int_port = int(port)
-                self.__comm = CommSocket(port=int_port, host=ip, timeout=timeout, tcp=tcp)
+                self._comm = CommSocket(port=int_port, host=ip, timeout=timeout, tcp=tcp)
             except CommException as e:
                 log(ERROR, 'Unable to create socket - ' + str(e))
                 raise MinitelException
         
-        log(level=DEBUG, msg='New Comm: id ' + str(id(self.__comm)))
+        log(level=DEBUG, msg='New Comm: id ' + str(id(self._comm)))
 
         try:
-            self.__comm.start()
+            self._comm.start()
         except RuntimeError:
             log(ERROR, 'Thread of Comm already started')
         
         if timeout is None:
-            self.__comm.setTimeout(10)
+            self._comm.setTimeout(10)
 
-        self.__port = port
-        self.__baudrate = baudrate
+        self._port = port
+        self._baudrate = baudrate
 
-        self.__text_attribute = TextAttributes()
-        self.__zone_attribute = ZoneAttributes()
+        self._text_attribute = TextAttributes()
+        self._zone_attribute = ZoneAttributes()
 
-        self.__bindings = {}
+        self._bindings = {}
 
         res = self.getMinitelInfo()
         if res is None:
@@ -220,53 +221,53 @@ class Minitel:
 
         
         print('[Minitel Info]')
-        print('- ROM ID: "' + self.__manufacturer.value + self.__model.value + self.__fw_version + '"')
-        print('* Manufacturer: ' + self.__manufacturer.name)
-        print('* Model: ' + self.__model.name)
-        print('* Firmware Version: ' + self.__fw_version)
+        print('- ROM ID: "' + self._manufacturer.value + self._model.value + self._fw_version + '"')
+        print('* Manufacturer: ' + self._manufacturer.name)
+        print('* Model: ' + self._model.name)
+        print('* Firmware Version: ' + self._fw_version)
 
         if self.getVisualizationModule() is None:
             log(ERROR, 'Unable to retrive with the minitel visualization module')
         else:
-            print('* Visualization Module: ' + self.__vm.name)
+            print('* Visualization Module: ' + self._vm.name)
 
-        if self.__model != self.Model.MINITEL_1B:
+        if self._model != self.Model.MINITEL_1B:
             log(WARNING, 'pyMinitel is supporting MINITEL 1B for now, try at your own risk.')
         
         if self.getModuleOperatingModeStatus() is None:
             log(ERROR, 'Unable to retrive with the minitel module operating mode status')
         else:
             print('[Modules Operating Mode Status]')
-            print('* isKeyboadCapsLocked: ' + str(self.__keyboard_caps_enabled))
-            print('* PCE: ' + str(self.__pce_enabled))
-            print('* Roll Mode: ' + str(self.__roll_mode_enabled))
-            print('* Screen Mode: ' + str(self.__mode.name))
+            print('* isKeyboadCapsLocked: ' + str(self._keyboard_caps_enabled))
+            print('* PCE: ' + str(self._pce_enabled))
+            print('* Roll Mode: ' + str(self._roll_mode_enabled))
+            print('* Screen Mode: ' + str(self._mode.name))
 
         if self.setVideoMode(mode):
             log(ERROR, 'Unable to set video mode')
         else:
-            print('* New Video Mode:' + str(self.__mode.name))
+            print('* New Video Mode:' + str(self._mode.name))
 
         if self.getKeyboardMode() is None:
             log(ERROR, 'Unable to retreive keyboard mode')
         else:
-            print('* Keyboard Extended: ' + str(self.__keyboard_extended))
-            print('* Keyboard C0: ' + str(self.__keyboard_c0))
+            print('* Keyboard Extended: ' + str(self._keyboard_extended))
+            print('* Keyboard C0: ' + str(self._keyboard_c0))
 
         if timeout is None:
-            self.__comm.setTimeout(None)
+            self._comm.setTimeout(None)
     
     def __del__(self):
-        if self.__comm:
-            if not self.__comm.stopped():
-                self.__comm.stop()
-                self.__comm.join()
+        if self._comm:
+            if not self._comm.stopped():
+                self._comm.stop()
+                self._comm.join()
         
-            self.__comm.close()
+            self._comm.close()
 
     def read(self, n: bytes) -> bytes:
         try:
-            return self.__comm.read(n)
+            return self._comm.read(n)
         except CommException as e:
             log(ERROR, 'Got Exception while attempting to send message - ' + str(e))
             return None
@@ -274,7 +275,7 @@ class Minitel:
     
     def send(self, data: bytes) -> int:
         try:
-            self.__comm.put(data)
+            self._comm.put(data)
         except CommException as e:
             log(ERROR, 'Got Exception while attempting to send message - ' + str(e))
             return -1
@@ -429,25 +430,25 @@ class Minitel:
             log(ERROR, "Response from getMinitelInfo's Request is invalid (got :" + str(answer.hex()) + ")")
             return None
         
-        self.__manufacturer = self.Manufacturer(answer[1:2].decode())
-        self.__model = self.Model(answer[2:3].decode())
-        self.__fw_version = answer[3:4].decode()
+        self._manufacturer = self.Manufacturer(answer[1:2].decode())
+        self._model = self.Model(answer[2:3].decode())
+        self._fw_version = answer[3:4].decode()
 
-        return self.__manufacturer, self.__model, self.__fw_version
+        return self._manufacturer, self._model, self._fw_version
     
     def getVisualizationModule(self) -> VisualizationModule:
-        if self.__model == self.Model.MINITEL_1B:
-            if self.__manufacturer == self.Manufacturer.TRT_PHILIPS or self.__fw_version == '5' or self.__fw_version == ';' or self.__fw_version == '<':
-                self.__vm = VisualizationModule.VGP5
-            elif self.__manufacturer == self.Manufacturer.TELIC_MATRA and (self.__fw_version == '2' or self.__fw_version == '3' or self.__fw_version == '4'):
-                self.__vm = VisualizationModule.VGP2
+        if self._model == self.Model.MINITEL_1B:
+            if self._manufacturer == self.Manufacturer.TRT_PHILIPS or self._fw_version == '5' or self._fw_version == ';' or self._fw_version == '<':
+                self._vm = VisualizationModule.VGP5
+            elif self._manufacturer == self.Manufacturer.TELIC_MATRA and (self._fw_version == '2' or self._fw_version == '3' or self._fw_version == '4'):
+                self._vm = VisualizationModule.VGP2
             else:
-                log(ERROR, 'Unknown Visualization Module - Default is ' + self.__vm.name)
+                log(ERROR, 'Unknown Visualization Module - Default is ' + self._vm.name)
         else:
-            self.__vm = VisualizationModule.VGP2
-            log(Warning, 'Not handling models other than ' + str(self.Model.MINITEL_1B) + ' (got model: ' + str(self.__model) +'), Default is ' + self.__vm.name)
+            self._vm = VisualizationModule.VGP2
+            log(Warning, 'Not handling models other than ' + str(self.Model.MINITEL_1B) + ' (got model: ' + str(self._model) +'), Default is ' + self._vm.name)
 
-        return self.__vm
+        return self._vm
     
     def getModuleOperatingModeStatus(self) -> tuple:
         command = self.PRO1 + self.OPERATING_STATUS
@@ -468,21 +469,21 @@ class Minitel:
         roll_mode_bit = 1 << 1
         screen_format_bit = 1
 
-        self.__keyboard_caps_enabled = status & keyboard_caps_lock_bit == 0
-        self.__pce_enabled = status & pce_bitfield_bit == 1
-        self.__roll_mode_enabled = status & roll_mode_bit == 1
+        self._keyboard_caps_enabled = status & keyboard_caps_lock_bit == 0
+        self._pce_enabled = status & pce_bitfield_bit == 1
+        self._roll_mode_enabled = status & roll_mode_bit == 1
         if status & screen_format_bit == 0:
-            self.__mode = Mode.VIDEOTEX
+            self._mode = Mode.VIDEOTEX
         else:
-            self.__mode = Mode.MIXED
+            self._mode = Mode.MIXED
 
-        return self.__keyboard_caps_enabled, self.__pce_enabled, self.__roll_mode_enabled, self.__mode
+        return self._keyboard_caps_enabled, self._pce_enabled, self._roll_mode_enabled, self._mode
     
     def setVideoMode(self, mode: Mode = Mode.VIDEOTEX) -> int:
         if mode is None:
             log(ERROR, 'Invalid None Argument')
             return -1
-        if self.__mode == mode:
+        if self._mode == mode:
             log(INFO, 'Video Mode already set in ' + mode.name + ' mode')
             return 0
 
@@ -502,7 +503,7 @@ class Minitel:
             log(ERROR, "Response from setVideoMode's Request is invalid (got :" + str(answer.hex()) + ")")
             return -1
 
-        self.__mode = mode
+        self._mode = mode
         return 0
 
     def getCursorPosition(self) -> tuple:
@@ -555,11 +556,11 @@ class Minitel:
         return -1 
 
     def setConnectorBaudrate(self, emission_baudrate = ConnectorBaudrate.BAUDS_1200, reception_baudrate = ConnectorBaudrate.BAUDS_1200) -> tuple:
-        if isinstance(self.__comm, CommSocket):
+        if isinstance(self._comm, CommSocket):
             log(ERROR, "Baudrate not handled for socket comm")
             return None
         
-        if emission_baudrate != reception_baudrate and self.__model == self.Model.MINITEL_1B:
+        if emission_baudrate != reception_baudrate and self._model == self.Model.MINITEL_1B:
             log(ERROR, "Emission and Reception Baudrate must be symetrical for Minitel 1B Models")
             return None
         
@@ -573,11 +574,11 @@ class Minitel:
             log(ERROR, "Error while attempting to send setConnectorBaudrate request")
             return None
 
-        old_baudrate = self.__baudrate
-        if type(self.__comm) == CommSerial:
+        old_baudrate = self._baudrate
+        if type(self._comm) == CommSerial:
             time.sleep(.5)
             try:
-                self.__comm.setBaudrate(emission_baudrate.to_int())
+                self._comm.setBaudrate(emission_baudrate.to_int())
             except CommException:
                 log(ERROR, "Error while attempting Comm::setBaudrate")
                 return None
@@ -585,9 +586,9 @@ class Minitel:
         if self.getMinitelInfo() is None:
             log(ERROR, "setConnectorBaudrate failed, Restoring initial baudrate...")
 
-            if type(self.__comm) == CommSerial:
+            if type(self._comm) == CommSerial:
                 try:
-                    self.__comm.setBaudrate(emission_baudrate.to_int())
+                    self._comm.setBaudrate(emission_baudrate.to_int())
                 except CommException:
                     log(ERROR, "Error while attempting Comm::setBaudrate")
                     return None
@@ -638,7 +639,7 @@ class Minitel:
 
     def setKeyboardMode(self, extended: bool = True, c0: bool = False) -> tuple:
         self.getKeyboardMode()
-        if self.__keyboard_extended != extended:
+        if self._keyboard_extended != extended:
             action = self.START
             if not extended: 
                 action = self.STOP
@@ -654,10 +655,10 @@ class Minitel:
             extended_bitfield = 1
 
             status = int.from_bytes(answer[4:5])
-            self.__keyboard_extended = status & extended_bitfield
-            self.__keyboard_c0 = status &  c0_bitfield
+            self._keyboard_extended = status & extended_bitfield
+            self._keyboard_c0 = status &  c0_bitfield
             
-        if self.__keyboard_c0 != c0:
+        if self._keyboard_c0 != c0:
             action = self.START
             if not c0: 
                 action = self.STOP
@@ -673,10 +674,10 @@ class Minitel:
             extended_bitfield = 1
 
             status = int.from_bytes(answer[4:5])
-            self.__keyboard_extended = status & extended_bitfield
-            self.__keyboard_c0 = status &  c0_bitfield
+            self._keyboard_extended = status & extended_bitfield
+            self._keyboard_c0 = status &  c0_bitfield
 
-        return self.__keyboard_extended, self.__keyboard_c0
+        return self._keyboard_extended, self._keyboard_c0
 
     def getKeyboardMode(self) -> tuple:
         if self.send(self.PRO2 + self.GET_KEYBOARD_STATUS + self.IO_CODES[self.Module.KEYBOARD][self.IO.IN]):
@@ -691,10 +692,10 @@ class Minitel:
         extended_bitfield = 1
 
         status = int.from_bytes(answer[4:5])
-        self.__keyboard_extended = status & extended_bitfield
-        self.__keyboard_c0 = status &  c0_bitfield
+        self._keyboard_extended = status & extended_bitfield
+        self._keyboard_c0 = status &  c0_bitfield
 
-        return self.__keyboard_extended, self.__keyboard_c0
+        return self._keyboard_extended, self._keyboard_c0
 
     def enableKeyboard(self, update_cursor: bool = True) -> int:
         res = self.unblockModule(self.Module.KEYBOARD)
@@ -727,7 +728,7 @@ class Minitel:
         return -1
 
     def setScreenPageMode(self) -> int:
-        if not self.__roll_mode_enabled:
+        if not self._roll_mode_enabled:
             log(INFO, 'Scroll Mode already disabled.')
             return 0
 
@@ -741,11 +742,11 @@ class Minitel:
             log(ERROR, 'setScreenPageMode might have failed, excepted x13x56 but got ' + answer.hex())
             return -1
 
-        self.__roll_mode_enabled = False
+        self._roll_mode_enabled = False
         return 0
 
     def setScreenRollMode(self) -> int:
-        if self.__roll_mode_enabled:
+        if self._roll_mode_enabled:
             log(INFO, 'Scroll Mode already enabled.')
             return 0
         
@@ -759,7 +760,7 @@ class Minitel:
             log(ERROR, 'setScreenRollMode might have failed, excepted x13x56 but got ' + answer.hex())
             return -1
 
-        self.__roll_mode_enabled = True
+        self._roll_mode_enabled = True
         return 0
 
     class CopyMode(Enum):
@@ -776,7 +777,7 @@ class Minitel:
     
 
     def setTextAttributes(self, color: CharacterColor = None, blinking: bool = None, inverted = None, double_height: bool = None, double_width: bool = None) -> int:
-        if self.__mode == Mode.MIXED:
+        if self._mode == Mode.MIXED:
             log(WARNING, 'Sending Text Attributes on Mixed Video Mode will be ignored by the Minitel.')
         
         if double_height:
@@ -784,28 +785,28 @@ class Minitel:
             if r == 1:
                 self.newLine()
 
-        if self.send(self.__text_attribute.setAttributes(color=color, blinking=blinking, inverted=inverted, double_height=double_height, double_width=double_width)):
+        if self.send(self._text_attribute.setAttributes(color=color, blinking=blinking, inverted=inverted, double_height=double_height, double_width=double_width)):
             log(ERROR, "Error while attempting to send TextAttributes")
             return -1
         return 0
 
     def resetTextAttributes(self) -> int:
-        if self.__mode == Mode.MIXED:
+        if self._mode == Mode.MIXED:
             log(WARNING, 'Sending Text Attributes on Mixed Video Mode will be ignored by the Minitel.')
         
         return self.setTextAttributes(color=CharacterColor.WHITE, blinking=False, inverted=False, double_height=False, double_width=False)
 
     def setZoneAttributes(self, color: BackgroundColor = None, masking: bool = None, highlight: bool = None):
-        if self.__mode == Mode.MIXED:
+        if self._mode == Mode.MIXED:
             log(WARNING, 'Sending Zone Attributes on Mixed Video Mode will be ignored by the Minitel.')
         
-        if self.send(self.__zone_attribute.setAttributes(color=color, masking=masking, highlight=highlight)):
+        if self.send(self._zone_attribute.setAttributes(color=color, masking=masking, highlight=highlight)):
             log(ERROR, "Error while attempting to send ZoneAttributes")
             return -1
         return 0
 
     def resetZoneAttributes(self) -> int:
-        if self.__mode == Mode.MIXED:
+        if self._mode == Mode.MIXED:
             log(WARNING, 'Sending Zone Attributes on Mixed Video Mode will be ignored by the Minitel.')
 
         return self.setZoneAttributes(color=BackgroundColor.BLACK, masking=False, highlight=False)
@@ -838,7 +839,7 @@ class Minitel:
 
     def clear(self) -> int:
         res = 0
-        if self.__mode == Mode.VIDEOTEX:
+        if self._mode == Mode.VIDEOTEX:
             res = self.send(Layout.clear())
         else:
             res = self.send(Layout.setCursorPosition() + Layout.eraseInDisplay())
@@ -856,7 +857,7 @@ class Minitel:
     def print(self, text: str) -> int:
         data = b''
         for c in text:
-            data += alphanumerical.ascii_to_alphanumerical(c=c, vm=self.__vm)
+            data += alphanumerical.ascii_to_alphanumerical(c=c, vm=self._vm)
         
         if self.send(data):
             log(ERROR, "Error while attempting to send text")
@@ -864,22 +865,21 @@ class Minitel:
         return 0
         
     def bind(self, key: KeyboardCode, callback):
-
         if isinstance(key, FilterKeyboardCode):
-            self.__filter_bindings[key] = copy.copy(callback)
+            self._filter_bindings[key] = (callback)
             return
 
-        self.__bindings[key] = copy.copy(callback)
+        self._bindings[key] = (callback)
 
     def clearBindings(self):
-        for filter in self.__filter_bindings:
-            self.__filter_bindings[filter] = None
+        for filter in self._filter_bindings:
+            self._filter_bindings[filter] = None
         
-        self.__bindings = {} 
+        self._bindings = {} 
 
     def readKeyboard(self, timeout: int = None) -> int:
-        old_timeout = self.__comm.getTimeout()
-        self.__comm.setTimeout(timeout)
+        old_timeout = self._comm.getTimeout()
+        self._comm.setTimeout(timeout)
 
         data = self.read(1)
         if data is None:
@@ -904,7 +904,7 @@ class Minitel:
                         return -1
                     data += res
 
-        self.__comm.setTimeout(old_timeout)
+        self._comm.setTimeout(old_timeout)
 
         callback_called = False
 
@@ -912,33 +912,32 @@ class Minitel:
             print(data.hex())
 
         if len(data) == 0:
-            if self.__filter_bindings[FilterKeyboardCode.No_Keys] is not None:
-                self.__filter_bindings[FilterKeyboardCode.No_Keys]()
+            if self._filter_bindings[FilterKeyboardCode.No_Keys] is not None:
+                self._filter_bindings[FilterKeyboardCode.No_Keys]()
             return 0
         
-        if self.__filter_bindings[FilterKeyboardCode.Any_Keys] is not None:
-            self.__filter_bindings[FilterKeyboardCode.Any_Keys]()
+        if self._filter_bindings[FilterKeyboardCode.Any_Keys] is not None:
+            self._filter_bindings[FilterKeyboardCode.Any_Keys]()
             callback_called = True
 
         try:
             char = VideotexKeyboardCode(data).char()
+        
             if str.isprintable(char):
-                if self.__filter_bindings[FilterKeyboardCode.Printable_Keys]:
-                    self.__filter_bindings[FilterKeyboardCode.Printable_Keys](char)
+                if self._filter_bindings[FilterKeyboardCode.Printable_Keys]:
+                    self._filter_bindings[FilterKeyboardCode.Printable_Keys](char)
                     callback_called = True
         except ValueError as e:
             log(DEBUG, 'data is not a VideotexKeyboardCode')
-            pass
-        
 
-        if data in self.__bindings:
-            callback = self.__bindings[data]
+        if data in self._bindings:
+            callback = self._bindings[data]
             callback()
             callback_called = True
 
         if not callback_called:
-            if self.__filter_bindings[FilterKeyboardCode.Other_Keys]:
-                self.__filter_bindings[FilterKeyboardCode.Other_Keys]()
+            if self._filter_bindings[FilterKeyboardCode.Other_Keys]:
+                self._filter_bindings[FilterKeyboardCode.Other_Keys]()
 
         return 0
 

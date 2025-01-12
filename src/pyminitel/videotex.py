@@ -10,23 +10,14 @@ import copy
 
 class Videotex:
 
-    zone_attributes_buf = []
-
-    text_attributes_buf = []
-
-    text_buf = []
-
-    __screen_width = 0
-    __screen_height = 0
-
     def __init__(self) -> None:
         
-        self.__screen_height = RESOLUTION[Mode.VIDEOTEX][0] - 1
-        self.__screen_width = RESOLUTION[Mode.VIDEOTEX][1]
+        self._screen_height = RESOLUTION[Mode.VIDEOTEX][0] - 1
+        self._screen_width = RESOLUTION[Mode.VIDEOTEX][1]
 
-        self.zone_attributes_buf = [[ZoneAttributes() for _ in range(self.__screen_width)] for _ in range(self.__screen_height)]
-        self.text_attributes_buf = [[TextAttributes() for _ in range(self.__screen_width)] for _ in range(self.__screen_height)]
-        self.text_buf = [['' for _ in range(self.__screen_width)] for _ in range(self.__screen_height)]
+        self.zone_attributes_buf = [[ZoneAttributes() for _ in range(self._screen_width)] for _ in range(self._screen_height)]
+        self.text_attributes_buf = [[TextAttributes() for _ in range(self._screen_width)] for _ in range(self._screen_height)]
+        self.text_buf = [['' for _ in range(self._screen_width)] for _ in range(self._screen_height)]
 
 
     def toVideotex(self, vm: VisualizationModule) -> bytes:
@@ -40,8 +31,8 @@ class Videotex:
         char_double_w_inline = False;
         last_skip_r, last_skip_c = None, None
 
-        for r in range(self.__screen_height):
-            for c in range(self.__screen_width):
+        for r in range(self._screen_height):
+            for c in range(self._screen_width):
                 zone = self.zone_attributes_buf[r][c]
                 text = self.text_attributes_buf[r][c]
                 char = self.text_buf[r][c]
@@ -102,7 +93,7 @@ class Videotex:
         return data
     
     def setText(self, text: str, r: int, c: int, attribute: TextAttributes = None):
-        if r < 1 or c < 1 or r > self.__screen_height or c > self.__screen_width:
+        if r < 1 or c < 1 or r > self._screen_height or c > self._screen_width:
             log(ERROR, 'Invalid argument passed.')
             return
         while len(text):
@@ -110,14 +101,14 @@ class Videotex:
             if attribute is not None:
                 self.text_attributes_buf[r - 1][c - 1] = copy.deepcopy(attribute)
             c += 1
-            if c > self.__screen_width:
+            if c > self._screen_width:
                 c = 1
-                if r < self.__screen_height:
+                if r < self._screen_height:
                     r += 1
             text = text[1:]
 
     def drawBox(self, r: int, c: int, h: int, w: int, zoneAttribute: ZoneAttributes = ZoneAttributes()):
-        if r < 1 or c < 1 or r + h - 1 > self.__screen_height or c + w - 1 > self.__screen_width:
+        if r < 1 or c < 1 or r + h - 1 > self._screen_height or c + w - 1 > self._screen_width:
             log(ERROR, 'Invalid argument passed.')
             return
         
@@ -129,17 +120,17 @@ class Videotex:
     def drawHR(self, r: int):
         if r < 1 or r > 24:
             log(ERROR, 'Invalid argument given.')
-        for c in range(self.__screen_width):
+        for c in range(self._screen_width):
             self.text_buf[r - 1][c] = '–'
         
     def drawVR(self, c: int):
         if c < 1 or c > 40:
             log(ERROR, 'Invalid argument given.')
-        for r in range(self.__screen_height):
+        for r in range(self._screen_height):
             self.text_buf[r][c - 1] = "|"
 
     def drawFrame(self, r: int, c: int, h: int, w: int):
-        if r < 1 or c < 1 or r + h > self.__screen_height or c + w > self.__screen_width:
+        if r < 1 or c < 1 or r + h > self._screen_height or c + w > self._screen_width:
             log(ERROR, 'Invalid argument passed.')
             return
         
