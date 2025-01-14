@@ -1,4 +1,4 @@
-import threading, time, redis, pickle
+import threading, time, redis, pickle, os
 
 from helldivers_api import WarStatus
 
@@ -17,7 +17,10 @@ class HelldiversRefresher():
         return cls._instance
     
     def __init__(self):
-        self._redis = redis.Redis()
+        redis_host = os.getenv("REDIS_HOST", "localhost")  # Par défaut localhost
+        redis_port = int(os.getenv("REDIS_PORT", 6379))    # Par défaut 6379
+
+        self._redis = redis.StrictRedis(host=redis_host, port=redis_port)
         self.interval = 3600
 
         self._stop_event = threading.Event()
