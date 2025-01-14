@@ -1,17 +1,19 @@
-import requests, json
+import requests, json, pprint
 import time
+from transformers import pipeline
 
 root_url = "https://api.helldivers2.dev"
 api_v1 = '/api/v1/'
+api_v2 = '/api/v2/'
 api_raw = '/raw/api/'
 
 class PlanetStatus():
-        def __init__(self, name: str, owner: str, percentage: float, players: int, attacking: bool) -> None:
+        def __init__(self, name: str, owner: str, percentage: float, players: int, is_defense: bool) -> None:
             self.name = name
             self.owner = owner
             self.percentage = percentage
             self.players = players
-            self.attacking = 'attacking' if attacking else 'defending'
+            self.is_defense = is_defense
 
         def is_defence(self) -> bool :
             return self.owner == "Humans"
@@ -21,9 +23,12 @@ class WarStatus():
     def get_api_data(url):
         while(1):
             try:
-                response = requests.get(url)
+                print(url)
+
+                response = requests.get(url, headers={'X-Super-Client': 'minitel.xenoth.fr', 'X-Super-Contact': 'xenothvalack@gmail.com'})
                 response.raise_for_status()
                 data = response.json()
+
                 return data
             except requests.exceptions.RequestException as e:
                 if response.status_code == 429:
@@ -31,6 +36,8 @@ class WarStatus():
                     print('429 got - retry time: ' + str(retry_time))
                     time.sleep(int(response.headers['retry-after']))
                 else:
+                    print('ERROR - got: ' + str(response.status_code))
+
                     return None
             
 
@@ -45,13 +52,16 @@ class WarStatus():
 
     def getWarMajorOrder():
         api_url = root_url + api_v1 + 'assignments'
-        res = []
+
         assignements = WarStatus.get_api_data(api_url)
-        for assignement in assignements:
-            res.append(assignement['briefing'])
+        major_order = assignements[0]['briefing']
 
-        return res
+        print(major_order)
 
+        # summarizator = pipeline("summarization", model="t5-small", tokenizer="t5-small")
+        # summar = summarizator(major_order, max_length=15, min_length=10, do_sample=True)[0]['summary_text']
+        # print(summar)
+        return major_order
 
     def getWarFeeds():
         api_url = root_url + api_v1 + 'dispatches'
@@ -69,19 +79,23 @@ class WarStatus():
         for campaign in campaigns:
 
             planet = campaign['planet']
-            planet_id = planet['index']
 
-            api_url = root_url +  api_v1 + 'planets/' + str(planet_id)
-            api_data = WarStatus.get_api_data(api_url)
+            percentage = ((planet['maxHealth'] - planet['health']) / planet['maxHealth'])  * 100
+            is_defense = False
+
+            if planet['event']:
+                percentage = ((planet['event']['maxHealth'] - planet['event']['health']) / planet['event']['maxHealth'])  * 100
+                is_defense = True
             
             planets.append(PlanetStatus(
-                api_data['name'],
-                api_data['currentOwner'],
-                (api_data['health'] / api_data['maxHealth'])  * 100,
-                api_data['statistics']['playerCount'],
-                'attacking' in api_data['statistics']
+                planet['name'],
+                planet['currentOwner'],
+                percentage,
+                planet['statistics']['playerCount'],
+                is_defense
             ))
 
+        planets.sort(key=lambda x: x.players, reverse=True)
         return planets
     
     def __init__(self) -> None:
@@ -89,6 +103,3 @@ class WarStatus():
         self.feeds = WarStatus.getWarFeeds()
         self.major_order = WarStatus.getWarMajorOrder()
         self.planets = WarStatus.getPlanetsCampaigns()
-
-war = WarStatus()
-print(war)

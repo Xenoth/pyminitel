@@ -7,10 +7,11 @@ from pyminitel.alphanumerical import ascii_to_alphanumerical
 from pyminitel.page import Page
 from pyminitel.videotex import Videotex
 
-from helldivers_api import PlanetStatus, WarStatus
+from helldivers_refresher import HelldiversRefresher
+from helldivers_api import WarStatus
 
 from logging import log, ERROR
-import time, os, re
+import time, os, re, pickle
 
 from math import log, floor
 
@@ -30,8 +31,6 @@ class HelldiversPage(Page):
         self.page = b''
         self.logo = b''
 
-        self.war = WarStatus()
-
         filepath = os.path.join('.', 'src', 'examples', 'ressources', 'HELLDIVERS_VGP5_.VDT')
         if not os.path.exists(filepath):
             log(ERROR, "File not found: " + str(filepath))
@@ -47,22 +46,30 @@ class HelldiversPage(Page):
             self.logo = binary_file.read()
             binary_file.close()
 
-    def draw_major_order(self):
+    def draw_major_order(self, war_status: WarStatus):
         page = Videotex()
 
-        self.war.major_order = re.sub(CLEANR, '', self.war.major_order)
+        if war_status is None or war_status.major_order is None:
+            page.setText('NO MAJOR ORDER', 5, 16)
+            self.minitel.send(page.toVideotex(self.minitel.getVisualizationModule()))
+            return
 
-        page.setText(self.war.major_order[0:9], 5, 16)
-        page.setText(self.war.major_order[9: 9 + 24], 6, 1)
-        page.setText(self.war.major_order[9 + 24 : 9 + 24 + 22] + '...', 7, 1)
+        major_order = re.sub(CLEANR, '', war_status.major_order)
+
+        page.setText("         ", 5, 16)
+        page.setText(major_order[0: 24], 6, 1)
+        page.setText(major_order[24 : 24 + 24], 7, 1)
+        page.setText(major_order[24 + 24 : 24 + 24 + 24], 8, 1)
 
         self.minitel.send(page.toVideotex(self.minitel.getVisualizationModule()))
 
-    def draw_planets_status(self):
-
+    def draw_planets_status(self, war_status: WarStatus):
+        if war_status is None:
+            return
+        
         page = Videotex()
 
-        for index in range(len(self.war.planets)):
+        for index in range(len(war_status.planets)):
 
             item_text_attr = TextAttributes()
             item_attr = ZoneAttributes()
@@ -75,10 +82,10 @@ class HelldiversPage(Page):
                 item_attr.setAttributes(BackgroundColor.BLACK)
 
             page.drawBox(12 + index, 1, 1, 40, item_attr)
-            page.setText(text=self.war.planets[index].name, r=12 + index, c=2, attribute=item_text_attr)
-            page.setText(text=str("%.2f" % self.war.planets[index].percentage) + '%', r=12 + index, c=16, attribute=item_text_attr)
-            page.setText(text=str(human_format(self.war.planets[index].players)), r=12 + index, c=25, attribute=item_text_attr)
-            page.setText(text=str(self.war.planets[index].is_defence()), r=12 + index, c=34, attribute=item_text_attr)
+            page.setText(text=war_status.planets[index].name, r=12 + index, c=2, attribute=item_text_attr)
+            page.setText(text=str("%.2f" % war_status.planets[index].percentage) + '%', r=12 + index, c=16, attribute=item_text_attr)
+            page.setText(text=str(human_format(war_status.planets[index].players)), r=12 + index, c=25, attribute=item_text_attr)
+            page.setText(text=str(war_status.planets[index].owner), r=12 + index, c=34, attribute=item_text_attr)
 
         self.minitel.send(page.toVideotex(self.minitel.getVisualizationModule()))
 
@@ -87,8 +94,9 @@ class HelldiversPage(Page):
         self.minitel.clear()
         self.minitel.send(self.page)
         self.minitel.send(self.logo)
-        self.draw_major_order()
-        self.draw_planets_status()
+        war_status = pickle.loads(HelldiversRefresher().getWarStatus())
+        self.draw_major_order(war_status=war_status)
+        self.draw_planets_status(war_status=war_status)
         self.minitel.beep()
         self.minitel.getMinitelInfo()
         self.minitel.send(Layout.setCursorPosition(14.15))
