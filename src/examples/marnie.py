@@ -7,7 +7,9 @@ from pyminitel.alphanumerical import ascii_to_alphanumerical
 from pyminitel.page import Page
 
 from logging import log, ERROR
-import time
+import time, os, openai
+
+openai.api_key = os.getenv("OPENAI_APP_KEY", "")
 
 class MarniePage(Page):
 
@@ -110,10 +112,22 @@ class MarniePage(Page):
         self.minitel.disableKeyboard()
         self.minitel.send(Layout.setCursorPosition(19, 13))
         self.minitel.send(Layout.eraseInLine(csi_k=Layout.CSI_K.FROM_CURSOR_TO_EOL))
-        if 'quoi' in self.prompt.lower():
-            self.prompt = "Quoicoubeeeeh"
-        msg = 'You said:' + self.prompt + '?'
-        self.minitel.print(msg)
+
+        reply = "NONE"
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are the board computer AI of a spaceship, the CSS MARNIE. This ship is a Cargo/Towing Ship. Details of the ship: 37.000 to 87.000 metrics, Two F-563 engines, M-class ship, Harigini Corporation, 5 active crews. Short Answers, feel cold."},
+                    {"role": "user", "content": self.prompt}
+                ]
+            )
+            reply = response['choices'][0]['message']['content']
+            print(reply)
+        except Exception as e:
+            reply =  "Sorry commander, technical issues."
+
+        self.minitel.print(reply)
         self.minitel.send(Layout.setCursorPosition(22, 22))
         self.minitel.print('..................')
         self.minitel.send(Layout.setCursorPosition(22, 22))

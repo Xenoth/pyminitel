@@ -1,6 +1,6 @@
 [project]
 name = "pyminitel"
-version = "0.2.2"
+version = "0.2.3"
 authors = [
     { name="Xenoth", email="xenothvalack@gmail.com" },
 ]
@@ -22,7 +22,8 @@ dependencies = [
     "torch", 
     "jsonpickle",
     "pyyaml",
-    "redis"
+    "redis",
+    "openai"
 ]
 
 [project.urls]
