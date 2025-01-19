@@ -73,7 +73,7 @@ class Videotex:
                     if len(diff):
                         data += Layout.fillLine()
                     if len(char):
-                        data += ascii_to_alphanumerical(char, VisualizationModule.VGP5)
+                        data += ascii_to_alphanumerical(c=char, vm=vm)
 
                 # if nothing to do save the least coordonates
                 if not len(char) and not len(diff):
@@ -90,6 +90,7 @@ class Videotex:
         reset_text = TextAttributes()
         data += previous_text.diff(reset_text)
 
+        log(DEBUG, 'VDT generated:' + data.hex())
         return data
     
     def setText(self, text: str, r: int, c: int, attribute: TextAttributes = None):

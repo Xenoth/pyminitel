@@ -1,6 +1,7 @@
-import requests, json, pprint
+import requests, datetime
 import time
-from transformers import pipeline
+
+from logging import log, ERROR, WARNING
 
 root_url = "https://api.helldivers2.dev"
 api_v1 = '/api/v1/'
@@ -8,12 +9,13 @@ api_v2 = '/api/v2/'
 api_raw = '/raw/api/'
 
 class PlanetStatus():
-        def __init__(self, name: str, owner: str, percentage: float, players: int, is_defense: bool) -> None:
+        def __init__(self, name: str, owner: str, percentage: float, players: int, faction: str, end_time: str) -> None:
             self.name = name
             self.owner = owner
             self.percentage = percentage
             self.players = players
-            self.is_defense = is_defense
+            self.faction = faction
+            self.end_time = end_time
 
         def is_defence(self) -> bool :
             return self.owner == "Humans"
@@ -33,10 +35,10 @@ class WarStatus():
             except requests.exceptions.RequestException as e:
                 if response.status_code == 429:
                     retry_time = int(response.headers['retry-after'])
-                    print('429 got - retry time: ' + str(retry_time))
+                    log(WARNING, 'Request response 429 - retry time: ' + str(retry_time))
                     time.sleep(int(response.headers['retry-after']))
                 else:
-                    print('ERROR - got: ' + str(response.status_code))
+                    log(ERROR, 'Got Request exception (' + str(response.status_code) + ')')
 
                     return None
             
@@ -81,18 +83,21 @@ class WarStatus():
             planet = campaign['planet']
 
             percentage = ((planet['maxHealth'] - planet['health']) / planet['maxHealth'])  * 100
-            is_defense = False
+            faction = planet['currentOwner']
+            end_time = None
 
             if planet['event']:
                 percentage = ((planet['event']['maxHealth'] - planet['event']['health']) / planet['event']['maxHealth'])  * 100
-                is_defense = True
+                faction = planet['event']['faction']
+                end_time = planet['event']['endTime']
             
             planets.append(PlanetStatus(
                 planet['name'],
                 planet['currentOwner'],
                 percentage,
                 planet['statistics']['playerCount'],
-                is_defense
+                faction = faction,
+                end_time=end_time
             ))
 
         planets.sort(key=lambda x: x.players, reverse=True)
@@ -103,3 +108,4 @@ class WarStatus():
         self.feeds = WarStatus.getWarFeeds()
         self.major_order = WarStatus.getWarMajorOrder()
         self.planets = WarStatus.getPlanetsCampaigns()
+        self.date = datetime.datetime.now()

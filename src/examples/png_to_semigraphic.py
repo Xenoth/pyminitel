@@ -1,6 +1,8 @@
 from PIL import Image
 from pyminitel import layout
-import os
+from pyminitel.attributes import SemiGraphicsAttributes, CharacterColor, BackgroundColor
+
+import os, logging
 
 SEMI_GRAPHIC_WIDTH = 2
 SEMI_GRAPHIC_HEIGHT = 3
@@ -21,30 +23,25 @@ def semi_graphic_to_hex(semi_graphic) -> bytes:
 
     return byte.to_bytes()
 
-print(str(semi_graphic_to_hex([1, 0, 0, 0, 0, 0]).hex()))
-print(str(semi_graphic_to_hex([0, 0, 1, 0, 0, 0]).hex()))
-print(str(semi_graphic_to_hex([1, 1, 0, 0, 1, 0]).hex()))
-print(str(semi_graphic_to_hex([1, 1, 1, 1, 1, 0]).hex()))
-print(str(semi_graphic_to_hex([1, 1, 0, 1, 1, 1]).hex()))
-print(str(semi_graphic_to_hex([1, 0, 1, 1, 1, 1]).hex()))
-print(str(semi_graphic_to_hex([0, 1, 1, 1, 1, 1]).hex()))
-print(str(semi_graphic_to_hex([1, 1, 1, 1, 1, 1]).hex()))
-
 def pixel_to_semi_graphic(pixels):
-    valeurs = []
+    values = []
     for y in range(SEMI_GRAPHIC_HEIGHT):
         for x in range(SEMI_GRAPHIC_WIDTH):
             pixel = pixels.getpixel((x, y))
-            valeur_pixel = 0 if pixel[3] == 0 else 1
-            valeurs.append(valeur_pixel)
-    return valeurs
+            values_pixel = 0 if pixel[3] == 0 else 1
+            values.append(values_pixel)
+    return values
 
 
-def png_to_vdt(image_filepath, offset_r = 0, offset_c = 0) -> bytes:
+def png_to_vdt(image_filepath: str, offset_r: int = 0, offset_c: int = None, attribute: SemiGraphicsAttributes = None) -> bytes:
 
     image = Image.open(image_filepath).convert("RGBA")
 
     image_width, image_height = image.size
+
+    if image_width % 2 or image_height % 3:
+        logging.log(logging.ERROR, "Image width must be a multiple of 2 and height a multiple of 3")
+        return b''
 
     semi_graphics = []
     for y in range(0, image_height, SEMI_GRAPHIC_HEIGHT):
@@ -54,6 +51,8 @@ def png_to_vdt(image_filepath, offset_r = 0, offset_c = 0) -> bytes:
             semi_graphics.append(semi_graphic)
 
     data = b'\x0e'
+    defaultAttr = SemiGraphicsAttributes()
+    data += defaultAttr.diff(attribute)
 
     j = 1
 
@@ -69,16 +68,20 @@ def png_to_vdt(image_filepath, offset_r = 0, offset_c = 0) -> bytes:
 
     data += b'\x0f'
 
-    print("png to semi graphic hexa: " + data.hex())
+    logging.log(logging.DEBUG, "PNG converted in VDT: " + data.hex())
 
     return data
 
-input = "src/examples/ressources/Helldiver skull.png"
-output = "HELLDIVERS_SG.VDT"
+input = "src/examples/ressources/earth_map.png"
+output = "EARTH_MAP.VDT"
+
+attr = SemiGraphicsAttributes()
+attr.setAttributes(color=CharacterColor.GREEN, background=BackgroundColor.BLUE, disjointed=True);
 
 destination=os.path.join('.', 'src', 'examples', 'ressources', output)
 with open(destination, "wb") as file:
-    file.write(png_to_vdt(input, offset_r = 0, offset_c = 26))
+    file.write(png_to_vdt(input, offset_r = 6, offset_c = 0, attribute=attr))
+
 
 
 

@@ -13,9 +13,12 @@ from pyminitel.attributes import BackgroundColor, CharacterColor
 from examples.marnie import MarniePage
 from examples.rainbow import RainbowPage
 from examples.helldivers import HelldiversPage
+from examples.iss import ISSPage
+
 from examples.guide import GuidePage
 
 from examples.helldivers_refresher import HelldiversRefresher
+from examples.iss_refresher import ISSRefresher
 
 
 SERVICES = {
@@ -30,6 +33,10 @@ SERVICES = {
     'hell': HelldiversPage,
     '03': HelldiversPage,
     '3': HelldiversPage,
+
+    'iss': ISSPage,
+    '04': ISSPage,
+    '4': ISSPage,
 }
 
 class PopupLevel(Enum):
@@ -236,6 +243,7 @@ def main() -> int:
 
     try:
         HelldiversRefresher().start()
+        ISSRefresher().start()
         
         xenas_socket = socket.socket()
         xenas_socket.bind((host, port))

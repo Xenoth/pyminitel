@@ -39,19 +39,78 @@ END_HIGHLIGHTING = b'\x59'
 NORMAL_BACKGROUND = b'\x5c'
 INVERTED_BACKGROUND = b'\x5d'
 
+START_LINEAGE = b'\x5a'
+END_LINEAGE = b'\x59'
+
 UNMASKING = b'\x5F'    
 
 
+class SemiGraphicsAttributes():
+    def __init__(self) -> None:
+        self.color = CharacterColor.WHITE
+        self.blinking = False
+        self.background = BackgroundColor.BLACK
+        self.disjointed = False
+
+    def setAttributes(self, color: CharacterColor = None, blinking: bool = None, background: BackgroundColor = None, disjointed: bool = None) -> bytes:
+
+        data = b''
+        
+        if color is not None:
+            data += ESC + color.value
+            self.color = color
+
+        if blinking is not None:
+            if blinking:
+                data += ESC + BLINKING
+                self.blinking = True
+            else:
+                data += ESC + FIXED
+                self.blinking = False
+
+        if background is not None:
+            data += ESC + background.value
+            self.background = background
+
+        if disjointed is not None:
+            if disjointed:
+                data += ESC + START_LINEAGE
+                self.disjointed = True
+            else:
+                data += ESC + END_LINEAGE
+                self.disjointed = False
+    
+        return data
+
+    def diff(self, new: "SemiGraphicsAttributes") -> bytes:
+        color = None
+        blinking = None
+        background = None
+        disjointed = None
+
+        if self.color != new.color:
+            color = new.color
+        
+        if self.blinking != new.blinking:
+            blinking = new.blinking
+        
+        if self.background != new.background:
+            background = new.background
+
+        if self.disjointed != new.disjointed:
+            disjointed = new.disjointed
+        
+        dump_zone = copy.deepcopy(self)
+        return dump_zone.setAttributes(color=color, blinking=blinking, background=background, disjointed=disjointed)
+
 class TextAttributes():
 
-    color = CharacterColor.WHITE
-    blinking = False
-    inverted = False
-    double_height = False
-    double_width = False
-
     def __init__(self) -> None:
-        pass
+        self.color = CharacterColor.WHITE
+        self.blinking = False
+        self.inverted = False
+        self.double_height = False
+        self.double_width = False
 
     def setAttributes(self, color: CharacterColor = None, blinking: bool = None, inverted = None, double_height: bool = None, double_width: bool = None) -> bytes:
 
@@ -131,12 +190,10 @@ class TextAttributes():
 
 class ZoneAttributes():
 
-    background = BackgroundColor.BLACK
-    masking = False
-    highlight = False
-
     def __init__(self) -> None:
-        pass
+        self.background = BackgroundColor.BLACK
+        self.masking = False
+        self.highlight = False
 
     def setAttributes(self, color: BackgroundColor = None, masking: bool = None, highlight: bool = None) -> bytes:
         data = b''

@@ -1,4 +1,6 @@
-import threading, time, redis, pickle, os
+import threading, time, redis, pickle, os, datetime
+
+from logging import log, DEBUG
 
 from helldivers_api import WarStatus
 
@@ -6,8 +8,9 @@ war_status = None
 
 class HelldiversRefresher():
 
-    _instance = None 
+    _instance = None
     _lock = threading.Lock() 
+    INTERVAL = 600
 
     def __new__(cls):
         if cls._instance is None: 
@@ -17,11 +20,10 @@ class HelldiversRefresher():
         return cls._instance
     
     def __init__(self):
-        redis_host = os.getenv("REDIS_HOST", "localhost")  # Par défaut localhost
-        redis_port = int(os.getenv("REDIS_PORT", 6379))    # Par défaut 6379
+        redis_host = os.getenv("REDIS_HOST", "localhost")
+        redis_port = int(os.getenv("REDIS_PORT", 6379))
 
         self._redis = redis.StrictRedis(host=redis_host, port=redis_port)
-        self.interval = 3600
 
         self._stop_event = threading.Event()
         self._thread = threading.Thread(target=self._run, daemon=True)
@@ -37,14 +39,20 @@ class HelldiversRefresher():
     def _run(self):
         while not self._stop_event.is_set():
             self.refreshWarStatus()
-            time.sleep(self.interval)
+            time.sleep(HelldiversRefresher.INTERVAL)
 
     def refreshWarStatus(self):
-        print("Refreshing War Status...")
+        log(DEBUG, "Refreshing War Status...")
         self._redis.set('war', pickle.dumps(WarStatus()));
-        print("War Status Updated.")
+        log(DEBUG, "War Status Updated.")
 
+    def getNextUpdateInSeconds(self) -> int:
+        war = pickle.loads(self._redis.get('war'))
+        if war is None:
+            return None
+        return int(HelldiversRefresher.INTERVAL - (datetime.datetime.now() - war.date).total_seconds())
+    
     def getWarStatus(self):
-        return self._redis.get('war')
+        return pickle.loads(self._redis.get('war'))
     
 

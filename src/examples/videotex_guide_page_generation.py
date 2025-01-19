@@ -63,4 +63,13 @@ page.setText("VST Halo of Redemption's",14, 7)
 page.setText("COMM",15, 7)
 page.setText('>FOR DEMOCRACY',16, 7)
 
+page.drawBox(17, 1, 1, 40, item_attr)
+page.setText("04", 17, 2)
+page.setText("ISS", 17, 6)
+page.setText("100", 17, 35)
+
+page.drawBox(18, 6, 2, 35, desc_attr)
+page.setText('ISS Tracker on earth map.',18, 7)
+page.setText('>Levez les yeux au ciel',19, 7)
+
 page.toVideotexFile(filename='GUIDE', destination=os.path.join('.', 'src', 'examples', 'ressources'))
