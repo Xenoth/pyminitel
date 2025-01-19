@@ -95,7 +95,7 @@ class ISSPage(Page):
 
         self.minitel.send(Layout.setCursorPosition(5))
         self.minitel.send(Layout.eraseInLine(csi_k=Layout.CSI_K.FROM_CURSOR_TO_EOL))
-        self.minitel.send(Layout.setCursorPosition(5, 10))
+        self.minitel.send(Layout.setCursorPosition(5, 1))
         self.minitel.print(str(datetime.datetime.fromtimestamp(positions[0].timestamp)))
         self.minitel.send(Layout.setCursorPosition(5, 22))
         self.minitel.print(str(positions[0].latitude))

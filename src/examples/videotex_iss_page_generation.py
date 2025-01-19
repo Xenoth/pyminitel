@@ -24,8 +24,7 @@ page.drawHR(3)
 
 page.drawBox(r=4, c=1, h=1, w=39, zoneAttribute=underlined)
 
-page.setText("Position", 4, 2)
-page.setText("Time", 4, 13)
+page.setText("Time", 4, 2)
 page.setText("Lat.", 4, 23)
 page.setText("Long.", 4, 33)
 
