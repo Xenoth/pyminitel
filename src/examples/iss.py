@@ -6,10 +6,10 @@ from pyminitel.visualization_module import *
 from pyminitel.page import Page
 from pyminitel.mode import RESOLUTION, Mode
 
-from iss_refresher import ISSRefresher
-from iss_api import ISS
+import os, datetime, time, redis, json
 
-import os, datetime, time
+redis_host = os.getenv("REDIS_HOST", "localhost")
+redis_port = int(os.getenv("REDIS_PORT", 6379))
 
 class ISSPage(Page):
 
@@ -22,10 +22,14 @@ class ISSPage(Page):
     LATITUDE_RANGE = (-90, 90)
     LONGITUDE_RANGE = (-180, 180)
 
-    MAX_POINTS = 13
+    MAX_POINTS = 10
+
+    ISS_KEY_PREFIX = "ISS"
 
     def __init__(self, minitel: Minitel) -> None:
         super().__init__(minitel)
+
+        self._redis = redis.StrictRedis(host=redis_host, port=redis_port)
 
         self.page = b''
         self.map = b''
@@ -83,28 +87,42 @@ class ISSPage(Page):
 
         return byte.to_bytes()
 
+    def get_all_items(self, key_prefix):
+        keys = self._redis.keys(f"{key_prefix}:*")
+        items = {key.decode('utf-8'): json.loads(self._redis.get(key)) for key in keys}
+
+        items.pop(ISSPage.ISS_KEY_PREFIX + ':counter', None)
+
+        return items
+    
     def print_iss_positions(self):
 
-        positions = ISSRefresher().getISSPositions()
+        positions = self.get_all_items(ISSPage.ISS_KEY_PREFIX)
+
+        sorted_positions = dict(sorted(positions.items(), key=lambda x: x[1]['timestamp'], reverse=True))
+        iss_counter = len(sorted_positions)
+
         max_points = ISSPage.MAX_POINTS
         
-        if len(positions) < ISSPage.MAX_POINTS:
-            max_points = len(positions)
+        if iss_counter < ISSPage.MAX_POINTS:
+            max_points = iss_counter
+        
+        printable_position = dict(list(sorted_positions.items())[:max_points])
 
-        printable_position = positions[:max_points]
+        last_pos_key, last_pos_value = next(iter(printable_position.items()))
 
         self.minitel.send(Layout.setCursorPosition(5))
         self.minitel.send(Layout.eraseInLine(csi_k=Layout.CSI_K.FROM_CURSOR_TO_EOL))
         self.minitel.send(Layout.setCursorPosition(5, 1))
-        self.minitel.print(str(datetime.datetime.fromtimestamp(positions[0].timestamp)))
+        self.minitel.print(str(datetime.datetime.fromtimestamp(last_pos_value['timestamp'])))
         self.minitel.send(Layout.setCursorPosition(5, 22))
-        self.minitel.print(str(positions[0].latitude))
+        self.minitel.print(str(last_pos_value['iss_position']['latitude']))
         self.minitel.send(Layout.setCursorPosition(5, 32))
-        self.minitel.print(str(positions[0].longitude))
+        self.minitel.print(str(last_pos_value['iss_position']['longitude']))
         blinking = True
 
-        for iss in printable_position:
-            x, y = self.geo_to_map(iss.latitude, iss.longitude)
+        for key, value in printable_position.items():
+            x, y = self.geo_to_map(float(value['iss_position']['latitude']), float(value['iss_position']['longitude']))
             cell_x, cell_y, rel_x, rel_y = self.get_cell_indices_and_position(x, y)
 
             if (cell_x) != 1 and (cell_x) != RESOLUTION[Mode.VIDEOTEX][1]:

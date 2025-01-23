@@ -4,7 +4,6 @@ from enum import Enum
 
 
 from pyminitel.connector import get_connected_serial_minitel
-from pyminitel.minitel import Minitel
 from pyminitel.mode import Mode
 from pyminitel.keyboard import FunctionKeyboardCode, FilterKeyboardCode
 from pyminitel.layout import Layout
@@ -16,10 +15,6 @@ from examples.helldivers import HelldiversPage
 from examples.iss import ISSPage
 
 from examples.guide import GuidePage
-
-from examples.helldivers_refresher import HelldiversRefresher
-from examples.iss_refresher import ISSRefresher
-
 
 SERVICES = {
     'marnie': MarniePage,
@@ -242,9 +237,6 @@ def main() -> int:
     port = 8083
 
     try:
-        HelldiversRefresher().start()
-        ISSRefresher().start()
-        
         xenas_socket = socket.socket()
         xenas_socket.bind((host, port))
 

@@ -6,14 +6,17 @@ from pyminitel.visualization_module import *
 from pyminitel.page import Page
 from pyminitel.videotex import Videotex
 
-from helldivers_refresher import HelldiversRefresher
-from helldivers_api import WarStatus, PlanetStatus
 
 from logging import log, ERROR
 from math import log, floor
 
-import time, os, re, textwrap, datetime
+import time, os, re, textwrap, datetime, redis, json
 
+KEY_CAMPAIGNS = "HELLDIVERS-CAMPAIGNS"
+KEY_ASSIGNMENTS = "HELLDIVERS-ASSIGNMENTS"
+
+redis_host = os.getenv("REDIS_HOST", "localhost")
+redis_port = int(os.getenv("REDIS_PORT", 6379))
 
 CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
 
@@ -35,11 +38,11 @@ def format_remaining_time(timestamp):
     else:
         return f"{seconds_remaining}s"
     
-def format_status(planet: PlanetStatus):
-    if planet.is_defence():
-        return  format_remaining_time(planet.end_time) + ' ' + planet.faction[:1] + '→' + 'H'
+def format_status(planet):
+    if planet['owner'] == 'Humans':
+        return  format_remaining_time(planet['end_time']) + ' ' + planet['faction'][:1] + '→' + 'H'
     else:
-        return 'H' + '→' + planet.owner[:1]
+        return 'H' + '→' + planet['owner'][:1]
 
     
 def wrap_text(text, width, height):
@@ -78,7 +81,9 @@ class HelldiversPage(Page):
     def __init__(self, minitel: Minitel) -> None:
         super().__init__(minitel)
 
-        self.max_planet_page_index = int(len(HelldiversRefresher().getWarStatus().planets) / HelldiversPage.PLANET_PER_PAGE)
+        self._redis = redis.StrictRedis(host=redis_host, port=redis_port)
+
+        self.max_planet_page_index = (int(len(self.getPlanets())) / HelldiversPage.PLANET_PER_PAGE)
         self.planet_page_index = 0
         self.page = b''
         self.logo = b''
@@ -98,19 +103,19 @@ class HelldiversPage(Page):
             self.logo = binary_file.read()
             binary_file.close()
 
-    def draw_major_order(self, war_status: WarStatus):
+    def draw_major_order(self):
         page = Videotex()
 
         for j in range(3):
             for i in range(25):
                 page.setText(' ', 6 + j, 2 + i)
 
-        if war_status is None or war_status.major_order is None:
-            page.setText('NO MAJOR ORDER', 7, 6)
-            self.minitel.send(page.toVideotex(self.minitel.getVisualizationModule()))
+        assignments = json.loads(self._redis.get(KEY_ASSIGNMENTS))
+        print(assignments)
+        if assignments is None or len(assignments) == 0:
             return
 
-        major_order = re.sub(CLEANR, '', war_status.major_order)
+        major_order = re.sub(CLEANR, '', assignments[0]['briefing'])
         
         lines = wrap_text(major_order, 25, 3)
         page.setText(lines[0], 6, 2)
@@ -119,21 +124,54 @@ class HelldiversPage(Page):
 
         self.minitel.send(page.toVideotex(self.minitel.getVisualizationModule()))
 
-    def draw_planets_status(self, war_status: WarStatus):
+    def getPlanets(self):
+
+        campaigns = json.loads(self._redis.get(KEY_CAMPAIGNS))
+        if campaigns is None:
+            return []
+
+        planets = []
+        for campaign in campaigns:
+
+            planet = campaign['planet']
+
+            percentage = ((planet['maxHealth'] - planet['health']) / planet['maxHealth'])  * 100
+            faction = planet['currentOwner']
+            end_time = None
+
+            if planet['event']:
+                percentage = ((planet['event']['maxHealth'] - planet['event']['health']) / planet['event']['maxHealth'])  * 100
+                faction = planet['event']['faction']
+                end_time = planet['event']['endTime']
+            
+            planets.append(
+                {
+                    'name': planet['name'],
+                    'owner': planet['currentOwner'],
+                    'percentage': percentage,
+                    'player_count': planet['statistics']['playerCount'],
+                    'faction': faction,
+                    'end_time': end_time
+                }
+            )
+
+        planets.sort(key=lambda x: x['player_count'], reverse=True)
+        return planets
+
+    def draw_planets_status(self):
         page = Videotex()
         for j in range(11):
             self.minitel.send(Layout.setCursorPosition(j + 12, 1))
             self.minitel.send(Layout.eraseInLine())
 
-        if war_status is None:
-            return
+        all_planets = self.getPlanets()
         
         min_range = self.planet_page_index * HelldiversPage.PLANET_PER_PAGE
         max_range = self.planet_page_index * HelldiversPage.PLANET_PER_PAGE + HelldiversPage.PLANET_PER_PAGE
-        if max_range > len(war_status.planets):
-            max_range = len(war_status.planets)
+        if max_range > len(all_planets):
+            max_range = len(all_planets)
 
-        planets = war_status.planets[min_range: max_range]
+        planets = all_planets[min_range: max_range]
 
         for index in range(len(planets)):
 
@@ -148,13 +186,12 @@ class HelldiversPage(Page):
                 item_attr.setAttributes(BackgroundColor.BLACK)
 
             page.drawBox(12 + index, 1, 1, 40, item_attr)
-            page.setText(text=planet_format(planets[index].name), r=12 + index, c=2, attribute=item_text_attr)
-            page.setText(text=align_right(str(format_percentage(planets[index].percentage)), 6), r=12 + index, c=17, attribute=item_text_attr)
-            page.setText(text=align_right(str(human_format(planets[index].players)), 7), r=12 + index, c=25, attribute=item_text_attr)
+            page.setText(text=planet_format(planets[index]['name']), r=12 + index, c=2, attribute=item_text_attr)
+            page.setText(text=align_right(str(format_percentage(planets[index]['percentage'])), 6), r=12 + index, c=17, attribute=item_text_attr)
+            page.setText(text=align_right(str(human_format(planets[index]['player_count'])), 7), r=12 + index, c=25, attribute=item_text_attr)
             page.setText(text=align_right(str(format_status(planets[index])), 8), r=12 + index, c=32, attribute=item_text_attr)
             
             page.setText(text="    ", r=24, c=11)
-            page.setText(text=str(HelldiversRefresher().getNextUpdateInSeconds()) + 's', r=24, c=11)
 
         self.minitel.send(page.toVideotex(self.minitel.getVisualizationModule()))
 
@@ -163,9 +200,8 @@ class HelldiversPage(Page):
         self.minitel.clear()
         self.minitel.send(self.page)
         self.minitel.send(self.logo)
-        war_status = HelldiversRefresher().getWarStatus()
-        self.draw_major_order(war_status=war_status)
-        self.draw_planets_status(war_status=war_status)
+        self.draw_major_order()
+        self.draw_planets_status()
         self.minitel.beep()
         self.minitel.getMinitelInfo()
 
@@ -179,18 +215,16 @@ class HelldiversPage(Page):
     def callback_next(self):
         if self.planet_page_index < self.max_planet_page_index:
             self.planet_page_index += 1
-            war_status = HelldiversRefresher().getWarStatus()
-            self.draw_major_order(war_status)
-            self.draw_planets_status(war_status)
+            self.draw_major_order()
+            self.draw_planets_status()
         else:
             self.minitel.beep()
 
     def callback_prev(self):
         if self.planet_page_index > 0:
             self.planet_page_index -= 1
-            war_status = HelldiversRefresher().getWarStatus()
-            self.draw_major_order(war_status)
-            self.draw_planets_status(war_status)
+            self.draw_major_order()
+            self.draw_planets_status()
         else:
             self.minitel.beep()
 

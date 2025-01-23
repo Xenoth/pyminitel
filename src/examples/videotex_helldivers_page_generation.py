@@ -35,7 +35,7 @@ page.drawHR(11)
 page.setText("Refresh", 23, 25)
 page.setText('Repetit.', 23, 33, button_attr)
 
-page.setText("Update in ", 24, 1)
+page.setText("Update each 10m", 24, 1)
 
 page.setText("Nav", 24, 25)
 page.setText('Suite/Retour', 24, 29, button_attr)
