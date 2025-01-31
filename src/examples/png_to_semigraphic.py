@@ -51,8 +51,11 @@ def png_to_vdt(image_filepath: str, offset_r: int = 0, offset_c: int = None, att
             semi_graphics.append(semi_graphic)
 
     data = b'\x0e'
-    defaultAttr = SemiGraphicsAttributes()
-    data += defaultAttr.diff(attribute)
+    cur_attr = SemiGraphicsAttributes()
+    if attribute is not None:
+        data += cur_attr.setAttributes(color=attribute.color, blinking=attribute.blinking, background=attribute.background, disjointed=attribute.disjointed)
+    else:
+        data += cur_attr.setAttributes(color=CharacterColor.WHITE, blinking=None, background=BackgroundColor.BLACK, disjointed=False)
 
     j = 1
 
@@ -72,15 +75,17 @@ def png_to_vdt(image_filepath: str, offset_r: int = 0, offset_c: int = None, att
 
     return data
 
-input = "src/examples/ressources/earth_map.png"
-output = "EARTH_MAP.VDT"
+logging.getLogger().setLevel(logging.DEBUG)
 
-attr = SemiGraphicsAttributes()
-attr.setAttributes(color=CharacterColor.GREEN, background=BackgroundColor.BLUE, disjointed=True);
+input = "src/examples/ressources/fox_right.png"
+output = "FOX_RIGHT.VDT"
+
+attribute = SemiGraphicsAttributes()
+attribute.setAttributes(color=CharacterColor.WHITE, blinking=False, background=BackgroundColor.BLACK, disjointed=False)
 
 destination=os.path.join('.', 'src', 'examples', 'ressources', output)
 with open(destination, "wb") as file:
-    file.write(png_to_vdt(input, offset_r = 6, offset_c = 0, attribute=attr))
+    file.write(png_to_vdt(input, offset_r = 22-6, offset_c = 39-7, attribute=attribute))
 
 
 

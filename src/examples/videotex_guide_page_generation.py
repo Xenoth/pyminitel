@@ -72,4 +72,13 @@ page.drawBox(18, 6, 2, 35, desc_attr)
 page.setText('ISS Tracker on earth map.',18, 7)
 page.setText('>Levez les yeux au ciel',19, 7)
 
+page.drawBox(20, 1, 1, 40, item_attr)
+page.setText("05", 20, 2)
+page.setText("HAIKU", 20, 6)
+page.setText("7", 20, 35)
+
+page.drawBox(21, 6, 2, 35, desc_attr)
+page.setText('Daily Haikus.',21, 7)
+page.setText('>calendhaiiku.com',22, 7)
+
 page.toVideotexFile(filename='GUIDE', destination=os.path.join('.', 'src', 'examples', 'ressources'))

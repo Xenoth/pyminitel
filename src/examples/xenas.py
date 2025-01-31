@@ -13,6 +13,7 @@ from examples.marnie import MarniePage
 from examples.rainbow import RainbowPage
 from examples.helldivers import HelldiversPage
 from examples.iss import ISSPage
+from examples.haikus import HaikusPage
 
 from examples.guide import GuidePage
 
@@ -32,6 +33,10 @@ SERVICES = {
     'iss': ISSPage,
     '04': ISSPage,
     '4': ISSPage,
+
+    'haiku': HaikusPage,
+    '05': HaikusPage,
+    '5': HaikusPage,
 }
 
 class PopupLevel(Enum):

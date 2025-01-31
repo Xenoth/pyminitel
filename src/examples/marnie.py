@@ -31,7 +31,7 @@ pairs = [
     ],
     [
         r"(.*)hiragini(.*)|(.*)company(.*)|(.*)corporation(.*)|(.*)owner(.*)|(.*)conceptor(.*)|(.*)employer(.*)",
-        ["HIRAGINI is my CONCEPTORS and the OWNER OG MARNIE. The COMPANY is your EMPLOYER"],
+        ["HIRAGINI is my CONCEPTOR and the OWNER of MARNIE. The COMPANY is your EMPLOYER"],
     ],
     [
         r"how are you?|(.*)status(.*)|(.*)report(.*)",

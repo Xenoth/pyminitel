@@ -190,8 +190,6 @@ class HelldiversPage(Page):
             page.setText(text=align_right(str(format_percentage(planets[index]['percentage'])), 6), r=12 + index, c=17, attribute=item_text_attr)
             page.setText(text=align_right(str(human_format(planets[index]['player_count'])), 7), r=12 + index, c=25, attribute=item_text_attr)
             page.setText(text=align_right(str(format_status(planets[index])), 8), r=12 + index, c=32, attribute=item_text_attr)
-            
-            page.setText(text="    ", r=24, c=11)
 
         self.minitel.send(page.toVideotex(self.minitel.getVisualizationModule()))
 
@@ -213,20 +211,20 @@ class HelldiversPage(Page):
         self.stop()
 
     def callback_next(self):
-        if self.planet_page_index < self.max_planet_page_index:
+        if self.planet_page_index < self.max_planet_page_index - 1:
             self.planet_page_index += 1
             self.draw_major_order()
             self.draw_planets_status()
-        else:
-            self.minitel.beep()
+        
+        self.minitel.beep()
 
     def callback_prev(self):
         if self.planet_page_index > 0:
             self.planet_page_index -= 1
             self.draw_major_order()
             self.draw_planets_status()
-        else:
-            self.minitel.beep()
+        
+        self.minitel.beep()
 
     def run(self):
         # Disable Keyboard as soon as possible to avoir communications errors
