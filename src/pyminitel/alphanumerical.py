@@ -1,7 +1,18 @@
-import pyminitel.visualization_module as visualization_module
+"""
+alphanumerical.py
+
+This module contains the alphanumerical description tables,
+and methods for pyminitel librarie.
+
+Author: Pol Bailleux (Xenoth)
+Date: February 2025
+License: MIT
+"""
 
 from collections import defaultdict
-from logging import *
+from logging import log, ERROR
+
+from pyminitel import visualization_module
 
 G0 = {
     '!': [ b'\x21' ],
@@ -108,7 +119,18 @@ VGP2 = {
     '£': [ SS2 + b'\x23' ],
     '$': [ SS2 + b'\x24' ],
     '#': [ SS2 + b'\x26' ],
-    "§": [ G0['P'][0] + G0['a'][0] + G0['r'][0] + G0['a'][0] + G0['g'][0] + G0['r'][0] + G0['a'][0] + G0['p'][0] + G0['h'][0] + G0['e'][0] ], 
+    "§": [
+        G0['P'][0] +
+        G0['a'][0] +
+        G0['r'][0] +
+        G0['a'][0] +
+        G0['g'][0] +
+        G0['r'][0] +
+        G0['a'][0] +
+        G0['p'][0] +
+        G0['h'][0] +
+        G0['e'][0]
+    ],
     '←': [ SS2 + b'\x2c' ],
     '↑': [ SS2 + b'\x2d' ],
     '→': [ SS2 + b'\x2e' ],
@@ -147,7 +169,7 @@ VGP2 = {
     'ó': [ SS2 + b'\x42' + G0['o'][0] ],
     'Ú': [ SS2 + b'\x42' + G0['U'][0] ],
     'ú': [ SS2 + b'\x42' + G0['u'][0] ],
-    
+
     'Â': [ SS2 + b'\x43' + G0['A'][0] ],
     'â': [ SS2 + b'\x43' + G0['a'][0] ],
     'Ê': [ SS2 + b'\x43' + G0['E'][0] ],
@@ -201,7 +223,7 @@ VGP2 = {
         SS2 + b'\x39',
         SS2 + b'\x3a',
         SS2 + b'\x3b',
-    
+
         SS2 + b'\x3f',
         SS2 + b'\x40',
 
@@ -270,7 +292,7 @@ VGP5 = {
     '£': [ SS2 + b'\x23' ],
     '$': [ SS2 + b'\x24' ],
     '#': [ SS2 + b'\x26' ],
-    "§": [ SS2 + b'\x27' ], 
+    "§": [ SS2 + b'\x27' ],
     '←': [ SS2 + b'\x2c' ],
     '↑': [ SS2 + b'\x2d' ],
     '→': [ SS2 + b'\x2e' ],
@@ -309,7 +331,7 @@ VGP5 = {
     'ó': [ SS2 + b'\x42' + G0['o'][0] ],
     'Ú': [ SS2 + b'\x42' + G0['U'][0] ],
     'ú': [ SS2 + b'\x42' + G0['u'][0] ],
-    
+
     'Â': [ SS2 + b'\x43' + G0['A'][0] ],
     'â': [ SS2 + b'\x43' + G0['a'][0] ],
     'Ê': [ SS2 + b'\x43' + G0['E'][0] ],
@@ -363,7 +385,7 @@ VGP5 = {
         SS2 + b'\x39',
         SS2 + b'\x3a',
         SS2 + b'\x3b',
-    
+
         SS2 + b'\x3f',
         SS2 + b'\x40',
 
@@ -461,13 +483,37 @@ ES = {
     'ō': [ G0['o'][0] ],
     'Ū': [ G0['U'][0] ],
     'ū': [ G0['u'][0] ],
-    '€': [ G0['E'][0] + G0['u'][0] + G0['r'][0] + G0['o'][0] + G0['('][0] + G0['s'][0] + G0[')'][0] ],
-    '¥': [ G0['Y'][0] + G0['e'][0] + G0['n'][0] + G0['('][0] + G0['s'][0] + G0[')'][0] ],
+    '€': [
+        G0['E'][0] +
+        G0['u'][0] +
+        G0['r'][0] +
+        G0['o'][0] +
+        G0['('][0] +
+        G0['s'][0] +
+        G0[')'][0]
+    ],
+    '¥': [
+        G0['Y'][0] +
+        G0['e'][0] +
+        G0['n'][0] +
+        G0['('][0] +
+        G0['s'][0] +
+        G0[')'][0]
+    ],
 }
 
-def invert_dict(dict):
+def invert_dict(d: dict):
+    """
+    Inverts the description tables for bilateral convertions
+
+    Parameters:
+    d (str): Description table.
+
+    Returns:
+    dict: inverted description table.
+    """
     inverted = defaultdict(list)
-    for key, values in dict.items():
+    for key, values in d.items():
         for value in values:
             inverted[value].append(key)
 
@@ -480,7 +526,16 @@ inverted_SC = invert_dict(SC)
 inverted_ES = invert_dict(ES)
 
 def ascii_to_alphanumerical(c: str, vm: visualization_module.VisualizationModule) -> bytes:
-    
+    """
+    Converts standard ASCII to minitel's alphanumerical
+
+    Parameters:
+    c (str): ASCII character.
+    vm (VisualizationModule): The Visualization Module of the Minitel targeted.
+
+    Returns:
+    bytes: The data converted in buffer.
+    """
     if c in G0:
         return G0[c][0]
 
@@ -492,34 +547,51 @@ def ascii_to_alphanumerical(c: str, vm: visualization_module.VisualizationModule
             return VGP5[c][0]
 
     if c in SC:
-            return SC[c][0]    
-    
+        return SC[c][0]
+
     if c in ES:
-            return ES[c][0]
-    
+        return ES[c][0]
+
     log(ERROR, 'Unable to convert the value "' + str(c) + '"')
 
     return G0['_'][0]
 
 def alphanumerical_to_ascii(data: bytes) -> tuple[int, str]:
+    """
+    Converts minitel's alphanumerical to ASCII
 
+    Parameters:
+    data (bytes): Received Buffer from Minitel.
+
+    Returns:
+    tuple[int, str]: A tuple containing the len (int) and a ASCII (str) converted.
+    """
     len_data = len(data)
-    
+
     if data[0:1] == SS2:
         if len_data < 2:
-            log(ERROR, "SS2 character found but data's length is " + len_data + " (expected at least 2)")
-        if data[1:2] == b'\x41' or data[1:2] == b'\x42' or data[1:2] == b'\x43' or data[1:2] == b'\x48' or data[1:2] == b'\x4b':
+            log(
+                ERROR,
+                "SS2 character found but data's length is %d (expected at least 2)",
+                len_data
+            )
+
+        if data[1:2] in {b'\x41', b'\x42', b'\x43', b'\x48', b'\x4b'}:
             if len_data < 3:
-                log(ERROR, "SS2 character found with accentuation but data's length is " + len_data + " (expected at least 3)")
+                log(
+                    ERROR,
+                    "SS2 character found with accentuation but data's length is %d "
+                    "(expected at least 3)",
+                    len_data
+                )
             if data[:3] in inverted_VGP5:
                 return 3, inverted_VGP5[data[:3]][0]
 
     if data[:1] in inverted_G0:
-            return 1, inverted_G0[data[:1]][0]
-    
+        return 1, inverted_G0[data[:1]][0]
+
     if data[:1] in inverted_SC:
-            return 1, inverted_SC[data[:1]][0],
-    
-    
+        return 1, inverted_SC[data[:1]][0]
+
     log(ERROR, "Unable to convert bytes " + data.hex() + "" )
     return 1, '_'

@@ -1,9 +1,9 @@
 from aenum import NamedConstant
 
 class KeyboardCode(NamedConstant):
-    def char(self):
+    def char(self) -> str:
         raise NotImplementedError()
-    
+
 class FilterKeyboardCode(KeyboardCode):
     Any_Keys = 1
     Printable_Keys = 2
@@ -12,7 +12,6 @@ class FilterKeyboardCode(KeyboardCode):
 
     def char(self):
         return ''
-
 
 class FunctionKeyboardCode(KeyboardCode):
     Send = b'\x13\x41'
@@ -27,9 +26,9 @@ class FunctionKeyboardCode(KeyboardCode):
     TS_Connection_Switch = b'\x13\x49' # To Din
     # Ctrl_Connection_Switch = b'' # Break send to Din or Modem
 
-    def char(self):
+    def char(self) -> str:
         return ''
-    
+
 class CursorKeyboardCode(KeyboardCode):
     Up = b'\x1b\x5b\x41'
     TS_Up = b'\x1b\x5b\x4d' # Delete line
@@ -45,7 +44,7 @@ class CursorKeyboardCode(KeyboardCode):
     TS_Enter = b'\x1b\x5b\x48' # Home
     Ctrl_Enter = b'\x1b\x5b\x32\x4a' # Clear page
 
-    def char(self):
+    def char(self) -> str:
         return ''
 
 class VideotexKeyboardCode(KeyboardCode):
@@ -203,7 +202,7 @@ class VideotexKeyboardCode(KeyboardCode):
     Ctrl_Repeat = b'\x19\x7a'
     Ctrl_Next = b'\x19\x7b'
 
-    def char(self):
+    def char(self) -> str:
         """ Convert the value to modern Unicode """
         match self:
             case self.Ctrl_Apostrophe:
@@ -215,26 +214,26 @@ class VideotexKeyboardCode(KeyboardCode):
             case self.Ctrl_C:
                 return '\u0003'
             case self.Ctrl_D:
-                return '\u0004' 
+                return '\u0004'
             case self.Ctrl_E:
-                return '\u0005' 
+                return '\u0005'
             case self.Ctrl_F:
-                return '\u0006' 
+                return '\u0006'
             case self.Ctrl_G:
-                return '\u0007' 
+                return '\u0007'
             case self.Ctrl_H:
                 return '\u0008'
             case self.Ctrl_I:
-                return '\u0009' 
+                return '\u0009'
             case self.Ctrl_J:
-                return '\u000a' 
+                return '\u000a'
             case self.Ctrl_Colon:
-                return '\u000a' 
+                return '\u000a'
             case self.Ctrl_K:
-                return '\u000b' 
-            case self.Ctrl_Semicolon: 
                 return '\u000b'
-            case self.Ctrl_L: 
+            case self.Ctrl_Semicolon:
+                return '\u000b'
+            case self.Ctrl_L:
                 return '\u000c'
             case self.Ctrl_M:
                 return '\u000d'
@@ -340,7 +339,7 @@ class VideotexKeyboardCode(KeyboardCode):
                 return ';'
             case self.TS_Comma:
                 return '<'
-            case self.TS_Minus: 
+            case self.TS_Minus:
                 return '='
             case self.TS_Full_Stop:
                 return '>'
@@ -511,3 +510,5 @@ class VideotexKeyboardCode(KeyboardCode):
                 return 'œ'
             case self.Ctrl_Next:
                 return 'β'
+
+        return ''

@@ -1,10 +1,19 @@
-from pyminitel.minitel import Minitel, MinitelException
+import glob
+import sys
+import socket
+
+from logging import log, ERROR
 
 from serial import Serial, SerialException
-from logging import log, ERROR
-import glob, sys, socket
 
-def get_connected_serial_minitel(port: str = None, ip: str = None, timeout: float = None, tcp: socket = None)-> Minitel:
+from pyminitel.minitel import Minitel, MinitelException
+
+def get_connected_serial_minitel(
+        port: str = None,
+        ip: str = None,
+        timeout: float = None,
+        tcp: socket = None
+) -> Minitel:
     minitel = None
     ports = []
 
@@ -13,17 +22,22 @@ def get_connected_serial_minitel(port: str = None, ip: str = None, timeout: floa
     else:
         ports.append(port)
 
-    for port in ports:
-        for bauds in [Minitel.ConnectorBaudrate.BAUDS_1200, Minitel.ConnectorBaudrate.BAUDS_4800, Minitel.ConnectorBaudrate.BAUDS_300]:
+    for current_port in ports:
+        for bauds in [
+            Minitel.ConnectorBaudrate.BAUDS_1200,
+            Minitel.ConnectorBaudrate.BAUDS_4800,
+            Minitel.ConnectorBaudrate.BAUDS_300
+        ]:
             try:
-                return Minitel(port=port, baudrate=bauds, ip=ip, timeout=timeout, tcp=tcp)
+                return Minitel(port=current_port, baudrate=bauds, ip=ip, timeout=timeout, tcp=tcp)
             except MinitelException as e :
                 log(ERROR, 'Minitel not connected on ' + str(bauds.to_int()) + ' bauds.')
                 log(level=ERROR, msg=str(e))
 
     if minitel is None:
         log(ERROR, 'Unable to find appropriate baudrate for the minitel, exiting...')
-        return None
+
+    return None
 
 def serial_ports():
     """ Lists serial port names

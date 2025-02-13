@@ -1,45 +1,53 @@
+import os
+import sys
+import logging
+
 from pyminitel.videotex import Videotex
 from pyminitel.attributes import TextAttributes, ZoneAttributes, CharacterColor
 
-import os, logging
+def main():
+    page = Videotex()
 
-page = Videotex()
+    button_attr = TextAttributes()
+    button_attr.set_attributes(CharacterColor.WHITE, inverted=True)
 
+    double_h_attr = TextAttributes()
+    double_h_attr.set_attributes(double_height=True)
 
-button_attr = TextAttributes()
-button_attr.setAttributes(CharacterColor.WHITE, inverted=True)
+    double_attr = TextAttributes()
+    double_attr.set_attributes(double_height=True, double_width=True)
 
-double_h_attr = TextAttributes()
-double_h_attr.setAttributes(double_height=True)
+    underlined = ZoneAttributes()
+    underlined.set_attributes(highlight=True)
 
-double_attr = TextAttributes()
-double_attr.setAttributes(double_height=True, double_width=True)
+    page.draw_box(r=4, c=2, h=1, w=35, zone_attribute=underlined)
 
-underlined = ZoneAttributes()
-underlined.setAttributes(highlight=True)
+    page.set_text("Helldivers II - ", r=1, c=3, attribute=double_attr)
+    page.set_text("Galactic War", r=3, c=3, attribute=double_attr)
 
-page.drawBox(r=4, c=2, h=1, w=35, zoneAttribute=underlined)
+    page.set_text("* Major Order *", r=5, c=7)
 
-page.setText("Helldivers II - ", r=1, c=3, attribute=double_attr)
-page.setText("Galactic War", r=3, c=3, attribute=double_attr)
+    page.set_text("Planets", r=10, c=2)
+    page.set_text("Liberty", r=10, c=16)
+    page.set_text("Players", r=10, c=25)
+    page.set_text("Status", r=10, c=34)
 
-page.setText("* Major Order *", r=5, c=7)
+    page.draw_hr(11)
 
-page.setText("Planets", r=10, c=2)
-page.setText("Liberty", r=10, c=16)
-page.setText("Players", r=10, c=25)
-page.setText("Status", r=10, c=34)
+    page.set_text("Refresh", 23, 25)
+    page.set_text('Repetit.', 23, 33, button_attr)
 
-page.drawHR(11)
+    page.set_text("Update each 10m", 24, 1)
 
-page.setText("Refresh", 23, 25)
-page.setText('Repetit.', 23, 33, button_attr)
+    page.set_text("Nav", 24, 25)
+    page.set_text('Suite/Retour', 24, 29, button_attr)
 
-page.setText("Update each 10m", 24, 1)
+    logging.getLogger().setLevel(level=logging.DEBUG)
 
-page.setText("Nav", 24, 25)
-page.setText('Suite/Retour', 24, 29, button_attr)
+    page.to_videotex_file(
+        filename='HELLDIVERS',
+        destination=os.path.join('.', 'src', 'examples', 'ressources')
+    )
 
-logging.getLogger().setLevel(level=logging.DEBUG)
-
-page.toVideotexFile(filename='HELLDIVERS', destination=os.path.join('.', 'src', 'examples', 'ressources'))
+if __name__ == '__main__':
+    sys.exit(main())
