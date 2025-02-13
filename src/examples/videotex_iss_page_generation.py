@@ -1,42 +1,50 @@
+import os
+import sys
+import logging
+
 from pyminitel.videotex import Videotex
-from pyminitel.attributes import TextAttributes, ZoneAttributes, CharacterColor, BackgroundColor
+from pyminitel.attributes import TextAttributes, ZoneAttributes, CharacterColor
 
-import os, logging
+def main():
+    page = Videotex()
 
-page = Videotex()
+    button_attr = TextAttributes()
+    button_attr.set_attributes(CharacterColor.WHITE, inverted=True)
 
+    double_h_attr = TextAttributes()
+    double_h_attr.set_attributes(double_height=True)
 
-button_attr = TextAttributes()
-button_attr.setAttributes(CharacterColor.WHITE, inverted=True)
+    double_attr = TextAttributes()
+    double_attr.set_attributes(double_height=True, double_width=True)
 
-double_h_attr = TextAttributes()
-double_h_attr.setAttributes(double_height=True)
+    underlined = ZoneAttributes()
+    underlined.set_attributes(highlight=True)
 
-double_attr = TextAttributes()
-double_attr.setAttributes(double_height=True, double_width=True)
+    page.set_text("ISS Tracker", r=2, c=10, attribute=double_attr)
 
-underlined = ZoneAttributes()
-underlined.setAttributes(highlight=True)
+    page.draw_hr(3)
 
-page.setText("ISS Tracker", r=2, c=10, attribute=double_attr)
+    page.draw_box(r=4, c=1, h=1, w=39, zone_attribute=underlined)
 
-page.drawHR(3)
+    page.set_text("Time", 4, 2)
+    page.set_text("Lat.", 4, 23)
+    page.set_text("Long.", 4, 33)
 
-page.drawBox(r=4, c=1, h=1, w=39, zoneAttribute=underlined)
+    box = ZoneAttributes()
+    box.set_attributes(highlight=False)
+    page.draw_box(r=5, c=1, h=1, w=40, zone_attribute=box)
 
-page.setText("Time", 4, 2)
-page.setText("Lat.", 4, 23)
-page.setText("Long.", 4, 33)
+    page.draw_hr(6)
 
-box = ZoneAttributes()
-box.setAttributes(highlight=False)
-page.drawBox(r=5, c=1, h=1, w=40, zoneAttribute=box)
+    page.set_text("Refresh", 24, 25)
+    page.set_text('Répétit.', 24, 33, button_attr)
 
-page.drawHR(6)
+    logging.getLogger().setLevel(level=logging.DEBUG)
 
-page.setText("Refresh", 24, 25)
-page.setText('Répétit.', 24, 33, button_attr)
+    page.to_videotex_file(
+        filename='ISS',
+        destination=os.path.join('.', 'src', 'examples', 'ressources')
+    )
 
-logging.getLogger().setLevel(level=logging.DEBUG)
-
-page.toVideotexFile(filename='ISS', destination=os.path.join('.', 'src', 'examples', 'ressources'))
+if __name__ == '__main__':
+    sys.exit(main())

@@ -1,9 +1,9 @@
-from enum import Enum
-from logging import *
 import copy
 
+from enum import Enum
+
 ESC = b'\x1b'
-DELIMETER = b'\x20'    
+DELIMETER = b'\x20'
 
 class CharacterColor(Enum):
     BLACK       = b'\x40'
@@ -42,7 +42,7 @@ INVERTED_BACKGROUND = b'\x5d'
 START_LINEAGE = b'\x5a'
 END_LINEAGE = b'\x59'
 
-UNMASKING = b'\x5F'    
+UNMASKING = b'\x5F'
 
 
 class SemiGraphicsAttributes():
@@ -52,10 +52,16 @@ class SemiGraphicsAttributes():
         self.background = BackgroundColor.BLACK
         self.disjointed = False
 
-    def setAttributes(self, color: CharacterColor = None, blinking: bool = None, background: BackgroundColor = None, disjointed: bool = None) -> bytes:
+    def set_attributes(
+        self,
+        color: CharacterColor = None,
+        blinking: bool = None,
+        background: BackgroundColor = None,
+        disjointed: bool = None
+    ) -> bytes:
 
         data = b''
-        
+
         if color is not None:
             data += ESC + color.value
             self.color = color
@@ -79,7 +85,7 @@ class SemiGraphicsAttributes():
             else:
                 data += ESC + END_LINEAGE
                 self.disjointed = False
-    
+
         return data
 
     def diff(self, new: "SemiGraphicsAttributes") -> bytes:
@@ -90,18 +96,20 @@ class SemiGraphicsAttributes():
 
         if self.color != new.color:
             color = new.color
-        
+
         if self.blinking != new.blinking:
             blinking = new.blinking
-        
+
         if self.background != new.background:
             background = new.background
 
         if self.disjointed != new.disjointed:
             disjointed = new.disjointed
-        
+
         dump_zone = copy.deepcopy(self)
-        return dump_zone.setAttributes(color=color, blinking=blinking, background=background, disjointed=disjointed)
+        return dump_zone.set_attributes(
+            color=color, blinking=blinking, background=background, disjointed=disjointed
+        )
 
 class TextAttributes():
 
@@ -112,10 +120,17 @@ class TextAttributes():
         self.double_height = False
         self.double_width = False
 
-    def setAttributes(self, color: CharacterColor = None, blinking: bool = None, inverted = None, double_height: bool = None, double_width: bool = None) -> bytes:
+    def set_attributes(
+        self,
+        color: CharacterColor = None,
+        blinking: bool = None,
+        inverted = None,
+        double_height: bool = None,
+        double_width: bool = None
+    ) -> bytes:
 
         data = b''
-        
+
         if color is not None:
             data += ESC + color.value
             self.color = color
@@ -147,12 +162,15 @@ class TextAttributes():
                     self.double_height = False
                     self.double_width = False
             else:
-                if double_height is not None and not double_height or double_width is not None and not double_width:
-                        data += ESC + NORMAL_SIZE
-                        if double_width is not None and not double_width:
-                            self.double_width = False
-                        else:
-                            self.double_height = False
+                if (
+                    double_height is not None and not double_height or
+                    double_width is not None and not double_width
+                ):
+                    data += ESC + NORMAL_SIZE
+                    if double_width is not None and not double_width:
+                        self.double_width = False
+                    else:
+                        self.double_height = False
                 if double_height:
                     data += ESC + DOUBLE_HEIGHT
                     self.double_height = True
@@ -161,7 +179,7 @@ class TextAttributes():
                     self.double_width = True
 
         return data
-    
+
     def diff(self, new: "TextAttributes") -> bytes:
         color = None
         blinking = None
@@ -171,22 +189,28 @@ class TextAttributes():
 
         if self.color != new.color:
             color = new.color
-        
+
         if self.blinking != new.blinking:
             blinking = new.blinking
-        
+
         if self.inverted != new.inverted:
             inverted = new.inverted
-        
+
         if self.double_height != new.double_height:
             print('HEIGHT DIFFERENT')
             double_height = new.double_height
 
         if self.double_width != new.double_width:
             double_width = new.double_width
-        
+
         dump_zone = copy.deepcopy(self)
-        return dump_zone.setAttributes(color=color, blinking=blinking, inverted=inverted, double_height=double_height, double_width=double_width)
+        return dump_zone.set_attributes(
+            color=color,
+            blinking=blinking,
+            inverted=inverted,
+            double_height=double_height,
+            double_width=double_width
+        )
 
 class ZoneAttributes():
 
@@ -195,7 +219,13 @@ class ZoneAttributes():
         self.masking = False
         self.highlight = False
 
-    def setAttributes(self, color: BackgroundColor = None, masking: bool = None, highlight: bool = None) -> bytes:
+    def set_attributes(
+        self,
+        color: BackgroundColor = None,
+        masking: bool = None,
+        highlight: bool = None
+    ) -> bytes:
+
         data = b''
 
         if color is not None:
@@ -209,7 +239,7 @@ class ZoneAttributes():
             else:
                 data += ESC + UNMASKING
                 self.masking = False
-        
+
         if highlight is not None:
             if highlight:
                 data += ESC + START_HIGHLIGHTING
@@ -222,7 +252,7 @@ class ZoneAttributes():
             data += DELIMETER
 
         return data
-    
+
     def diff(self, new: "ZoneAttributes") -> bytes:
         background = None
         highlight = None
@@ -230,15 +260,12 @@ class ZoneAttributes():
 
         if self.background != new.background:
             background = new.background
-        
+
         if self.highlight != new.highlight:
             highlight = new.highlight
-        
+
         if self.masking != new.masking:
             masking = new.masking
-        
+
         dump_zone = copy.deepcopy(self)
-        return dump_zone.setAttributes(color=background, masking=masking, highlight=highlight)
-
-
-
+        return dump_zone.set_attributes(color=background, masking=masking, highlight=highlight)

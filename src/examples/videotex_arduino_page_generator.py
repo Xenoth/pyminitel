@@ -1,40 +1,48 @@
+import os
+import sys
+import logging
+
 from pyminitel.videotex import Videotex
-from pyminitel.attributes import TextAttributes, ZoneAttributes, BackgroundColor, CharacterColor
+from pyminitel.attributes import TextAttributes, CharacterColor
 
-import os, logging
+def main():
+    logging.getLogger().setLevel(logging.DEBUG)
 
-logging.getLogger().setLevel(logging.DEBUG)
+    page = Videotex()
 
-page = Videotex()
+    button_attr = TextAttributes()
+    button_attr.set_attributes(CharacterColor.WHITE, inverted=True)
 
-button_attr = TextAttributes()
-button_attr.setAttributes(CharacterColor.WHITE, inverted=True)
+    error_attr = TextAttributes()
+    error_attr.set_attributes(CharacterColor.RED)
 
-error_attr = TextAttributes()
-error_attr.setAttributes(CharacterColor.RED)
+    nominal_attr = TextAttributes()
+    nominal_attr.set_attributes(CharacterColor.GREEN)
 
-nominal_attr = TextAttributes()
-nominal_attr.setAttributes(CharacterColor.GREEN)
+    page.set_text('@Xenoth', 15, 33)
 
+    page.set_text('Bridge v0.1', 18, 1)
 
-page.setText('@Xenoth', 15, 33)
+    page.draw_hr(17)
 
-page.setText('Bridge v0.1', 18, 1)
+    page.set_text('* WiFi:', 19, 2)
+    page.set_text('...         ', 19, 12)
+    # page.set_text('KO          ', 19, 12, error_attr)
+    # page.set_text('OK          ', 19, 12, nominal_attr)
+    # page.set_text('Disconnected', 19, 12, nominal_attr)s
+    page.set_text('* Service:', 20, 2)
+    page.set_text('...         ', 20, 12)
+    # page.set_text('KO          ', 20, 12, error_attr)
+    # page.set_text('OK          ', 20, 12, nominal_attr)
+    # page.set_text('Disconnected', 20, 12, nominal_attr)
 
-page.drawHR(17)
+    page.set_text('Connect/Disconnect', 24, 6)
+    page.set_text('Ts+Connexion/Fin', 24, 25, button_attr)
 
-page.setText('* WiFi:', 19, 2)
-page.setText('...         ', 19, 12)
-# page.setText('KO          ', 19, 12, error_attr)
-# page.setText('OK          ', 19, 12, nominal_attr)
-# page.setText('Disconnected', 19, 12, nominal_attr)s
-page.setText('* Service:', 20, 2)
-page.setText('...         ', 20, 12)
-# page.setText('KO          ', 20, 12, error_attr)
-# page.setText('OK          ', 20, 12, nominal_attr)
-# page.setText('Disconnected', 20, 12, nominal_attr)
+    page.to_videotex_file(
+        filename='ARDUINO',
+        destination=os.path.join('.', 'src', 'examples', 'ressources')
+    )
 
-page.setText('Connect/Disconnect', 24, 6)
-page.setText('Ts+Connexion/Fin', 24, 25, button_attr)
-
-page.toVideotexFile(filename='ARDUINO', destination=os.path.join('.', 'src', 'examples', 'ressources'))
+if __name__ == '__main__':
+    sys.exit(main())

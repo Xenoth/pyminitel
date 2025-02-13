@@ -1,22 +1,27 @@
-from pyminitel.minitel import Minitel
-from pyminitel.attributes import *
-from pyminitel.layout import Layout
-from pyminitel.keyboard import *
-from pyminitel.visualization_module import *
-from pyminitel.page import Page
-from pyminitel.videotex import Videotex
-
+import time
+import os
+import textwrap
+import datetime
+import json
+import re
 
 from logging import log, ERROR
-from math import log, floor
+from math import log as log_math, floor
 
-import time, os, re, textwrap, datetime, redis, json
+import redis
+
+from pyminitel.minitel import Minitel
+from pyminitel.attributes import TextAttributes, ZoneAttributes, CharacterColor, BackgroundColor
+from pyminitel.layout import Layout
+from pyminitel.keyboard import FunctionKeyboardCode
+from pyminitel.page import Page
+from pyminitel.videotex import Videotex
 
 KEY_CAMPAIGNS = "HELLDIVERS-CAMPAIGNS"
 KEY_ASSIGNMENTS = "HELLDIVERS-ASSIGNMENTS"
 
 redis_host = os.getenv("REDIS_HOST", "localhost")
-redis_port = int(os.getenv("REDIS_PORT", 6379))
+redis_port = int(os.getenv("REDIS_PORT", "6379"))
 
 CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
 
@@ -28,38 +33,41 @@ def format_remaining_time(timestamp):
     current_time = datetime.datetime.utcnow()
     delta = target_time - current_time
     seconds_remaining = int(delta.total_seconds())
-    
+
     if seconds_remaining >= 86400:
         return f"{seconds_remaining // 86400}d"
-    elif seconds_remaining >= 3600:
+    if seconds_remaining >= 3600:
         return f"{seconds_remaining // 3600}h"
-    elif seconds_remaining >= 60:
+    if seconds_remaining >= 60:
         return f"{seconds_remaining // 60}m"
-    else:
-        return f"{seconds_remaining}s"
-    
+
+    return f"{seconds_remaining}s"
+
 def format_status(planet):
     if planet['owner'] == 'Humans':
         return  format_remaining_time(planet['end_time']) + ' ' + planet['faction'][:1] + '→' + 'H'
-    else:
-        return 'H' + '→' + planet['owner'][:1]
 
-    
+    return 'H' + '→' + planet['owner'][:1]
+
+
 def wrap_text(text, width, height):
     wrapper = textwrap.TextWrapper(width=width, break_long_words=True, break_on_hyphens=False)
     lines = wrapper.wrap(text)
     return lines[:height]
 
 def planet_format(name: str):
-    if(len(name) > 13):
+    if len(name) > 13:
         return name[:12] + '.'
     return name
 
 def human_format(number):
     units = ['', 'K', 'M', 'G', 'T', 'P']
     k = 1000.0
-    magnitude = int(floor(log(number, k)))
-    return ('%d%s' if number / k**magnitude % 1 == 0 else '%.2f%s') % (number / k**magnitude, units[magnitude])
+    magnitude = int(floor(log_math(number, k)))
+    return (
+        ('%d%s' if number / k**magnitude % 1 == 0 else '%.2f%s')
+        % (number / k**magnitude, units[magnitude])
+    )
 
 def format_percentage(value):
     if value % 1 == 0:
@@ -69,10 +77,10 @@ def format_percentage(value):
 def align_right(field: str, width: int):
     if len(field) < width:
         return ' ' * (width - len(field)) + field
-    elif len(field) > width:
+    if len(field) > width:
         return field[0:width - 1] + '.'
-    else:
-        return field
+
+    return field
 
 class HelldiversPage(Page):
 
@@ -83,7 +91,7 @@ class HelldiversPage(Page):
 
         self._redis = redis.StrictRedis(host=redis_host, port=redis_port)
 
-        self.max_planet_page_index = (int(len(self.getPlanets())) / HelldiversPage.PLANET_PER_PAGE)
+        self.max_planet_page_index = (int(len(self.get_planets())) / HelldiversPage.PLANET_PER_PAGE)
         self.planet_page_index = 0
         self.page = b''
         self.logo = b''
@@ -108,7 +116,7 @@ class HelldiversPage(Page):
 
         for j in range(3):
             for i in range(25):
-                page.setText(' ', 6 + j, 2 + i)
+                page.set_text(' ', 6 + j, 2 + i)
 
         assignments = json.loads(self._redis.get(KEY_ASSIGNMENTS))
         print(assignments)
@@ -116,15 +124,15 @@ class HelldiversPage(Page):
             return
 
         major_order = re.sub(CLEANR, '', assignments[0]['briefing'])
-        
+
         lines = wrap_text(major_order, 25, 3)
-        page.setText(lines[0], 6, 2)
-        page.setText(lines[1], 7, 2)
-        page.setText(lines[2], 8, 2)
+        page.set_text(lines[0], 6, 2)
+        page.set_text(lines[1], 7, 2)
+        page.set_text(lines[2], 8, 2)
 
-        self.minitel.send(page.toVideotex(self.minitel.getVisualizationModule()))
+        self.minitel.send(page.to_videotex(self.minitel.get_visualization_module()))
 
-    def getPlanets(self):
+    def get_planets(self):
 
         campaigns = json.loads(self._redis.get(KEY_CAMPAIGNS))
         if campaigns is None:
@@ -140,10 +148,13 @@ class HelldiversPage(Page):
             end_time = None
 
             if planet['event']:
-                percentage = ((planet['event']['maxHealth'] - planet['event']['health']) / planet['event']['maxHealth'])  * 100
+                percentage = (
+                    ((planet['event']['maxHealth'] - planet['event']['health'])
+                    / planet['event']['maxHealth'])  * 100
+                )
                 faction = planet['event']['faction']
                 end_time = planet['event']['endTime']
-            
+
             planets.append(
                 {
                     'name': planet['name'],
@@ -161,37 +172,59 @@ class HelldiversPage(Page):
     def draw_planets_status(self):
         page = Videotex()
         for j in range(11):
-            self.minitel.send(Layout.setCursorPosition(j + 12, 1))
-            self.minitel.send(Layout.eraseInLine())
+            self.minitel.send(Layout.set_cursor_position(j + 12, 1))
+            self.minitel.send(Layout.erase_in_line())
 
-        all_planets = self.getPlanets()
-        
+        all_planets = self.get_planets()
+
         min_range = self.planet_page_index * HelldiversPage.PLANET_PER_PAGE
-        max_range = self.planet_page_index * HelldiversPage.PLANET_PER_PAGE + HelldiversPage.PLANET_PER_PAGE
-        if max_range > len(all_planets):
-            max_range = len(all_planets)
+        max_range = (
+            self.planet_page_index * HelldiversPage.PLANET_PER_PAGE
+            + HelldiversPage.PLANET_PER_PAGE
+        )
+        max_range = min(max_range, len(all_planets))
 
         planets = all_planets[min_range: max_range]
 
-        for index in range(len(planets)):
+        for index, planet in enumerate(planets):
 
             item_text_attr = TextAttributes()
             item_attr = ZoneAttributes()
 
             if index % 2:
-                item_text_attr.setAttributes(CharacterColor.BLACK)
-                item_attr.setAttributes(BackgroundColor.YELLOW)
+                item_text_attr.set_attributes(CharacterColor.BLACK)
+                item_attr.set_attributes(BackgroundColor.YELLOW)
             else:
-                item_text_attr.setAttributes(CharacterColor.YELLOW)
-                item_attr.setAttributes(BackgroundColor.BLACK)
+                item_text_attr.set_attributes(CharacterColor.YELLOW)
+                item_attr.set_attributes(BackgroundColor.BLACK)
 
-            page.drawBox(12 + index, 1, 1, 40, item_attr)
-            page.setText(text=planet_format(planets[index]['name']), r=12 + index, c=2, attribute=item_text_attr)
-            page.setText(text=align_right(str(format_percentage(planets[index]['percentage'])), 6), r=12 + index, c=17, attribute=item_text_attr)
-            page.setText(text=align_right(str(human_format(planets[index]['player_count'])), 7), r=12 + index, c=25, attribute=item_text_attr)
-            page.setText(text=align_right(str(format_status(planets[index])), 8), r=12 + index, c=32, attribute=item_text_attr)
+            page.draw_box(12 + index, 1, 1, 40, item_attr)
+            page.set_text(
+                text=planet_format(planet['name']),
+                r=12 + index,
+                c=2,
+                attribute=item_text_attr
+            )
+            page.set_text(
+                text=align_right(str(format_percentage(planet['percentage'])), 6),
+                r=12 + index,
+                c=17,
+                attribute=item_text_attr
+            )
+            page.set_text(
+                text=align_right(str(human_format(planet['player_count'])), 7),
+                r=12 + index,
+                c=25,
+                attribute=item_text_attr
+            )
+            page.set_text(
+                text=align_right(str(format_status(planet)), 8),
+                r=12 + index,
+                c=32,
+                attribute=item_text_attr
+            )
 
-        self.minitel.send(page.toVideotex(self.minitel.getVisualizationModule()))
+        self.minitel.send(page.to_videotex(self.minitel.get_visualization_module()))
 
 
     def print_page(self):
@@ -201,13 +234,13 @@ class HelldiversPage(Page):
         self.draw_major_order()
         self.draw_planets_status()
         self.minitel.beep()
-        self.minitel.getMinitelInfo()
+        self.minitel.get_minitel_info()
 
-        
+
     def callback_quit(self):
         self.minitel.clear()
         time.sleep(2)
-        self.minitel.getMinitelInfo()
+        self.minitel.get_minitel_info()
         self.stop()
 
     def callback_next(self):
@@ -215,7 +248,7 @@ class HelldiversPage(Page):
             self.planet_page_index += 1
             self.draw_major_order()
             self.draw_planets_status()
-        
+
         self.minitel.beep()
 
     def callback_prev(self):
@@ -223,25 +256,28 @@ class HelldiversPage(Page):
             self.planet_page_index -= 1
             self.draw_major_order()
             self.draw_planets_status()
-        
+
         self.minitel.beep()
 
     def run(self):
         # Disable Keyboard as soon as possible to avoir communications errors
-        self.minitel.disableKeyboard()
+        self.minitel.disable_keyboard()
         # Echo mode is a debug mode if Modem not connected - Disable 'cause using DIN connector
-        self.minitel.disableEcho()
-        self.minitel.setConnectorBaudrate(Minitel.ConnectorBaudrate.BAUDS_4800, Minitel.ConnectorBaudrate.BAUDS_4800)
+        self.minitel.disable_echo()
+        self.minitel.set_connector_baudrate(
+            Minitel.ConnectorBaudrate.BAUDS_4800,
+            Minitel.ConnectorBaudrate.BAUDS_4800
+        )
         self.print_page()
 
-        self.minitel.clearBindings()
+        self.minitel.clear_bindings()
 
         self.minitel.bind(FunctionKeyboardCode.Summary, callback=self.callback_quit)
         self.minitel.bind(FunctionKeyboardCode.Repeat, callback=self.print_page)
         self.minitel.bind(FunctionKeyboardCode.Next, callback=self.callback_next)
         self.minitel.bind(FunctionKeyboardCode.Previous, callback=self.callback_prev)
 
-        self.minitel.hideCursor()
-        self.minitel.enableKeyboard(update_cursor=False)
+        self.minitel.hide_cursor()
+        self.minitel.enable_keyboard(update_cursor=False)
         while not self.stopped():
-            self.minitel.readKeyboard(0.1)
+            self.minitel.read_keyboard(0.1)

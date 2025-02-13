@@ -1,12 +1,12 @@
-from pyminitel.minitel import Minitel
-
 import threading
+
+from pyminitel.minitel import Minitel
 
 class Page(threading.Thread):
 
     def __init__(self, minitel = Minitel) -> None:
-        super(Page, self).__init__()
-        
+        super().__init__()
+
         self._stop_event = threading.Event()
         self.minitel = minitel
 

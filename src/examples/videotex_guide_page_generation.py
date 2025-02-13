@@ -1,84 +1,91 @@
+import os
+import sys
+
 from pyminitel.videotex import Videotex
 from pyminitel.attributes import TextAttributes, ZoneAttributes, BackgroundColor, CharacterColor
 
-import os
+def main():
+    page = Videotex()
 
-page = Videotex()
+    button_attr = TextAttributes()
+    button_attr.set_attributes(CharacterColor.WHITE, inverted=True)
 
+    double_h_attr = TextAttributes()
+    double_h_attr.set_attributes(double_height=True)
 
-button_attr = TextAttributes()
-button_attr.setAttributes(CharacterColor.WHITE, inverted=True)
+    double_attr = TextAttributes()
+    double_attr.set_attributes(double_height=True, double_width=True)
 
-double_h_attr = TextAttributes()
-double_h_attr.setAttributes(double_height=True)
+    underlined = ZoneAttributes()
+    underlined.set_attributes(highlight=True)
 
-double_attr = TextAttributes()
-double_attr.setAttributes(double_height=True, double_width=True)
+    header_attr = ZoneAttributes()
+    header_attr.set_attributes(color=BackgroundColor.MAGENTA)
 
-underlined = ZoneAttributes()
-underlined.setAttributes(highlight=True)
+    item_attr = ZoneAttributes()
+    item_attr.set_attributes(color=BackgroundColor.BLUE)
 
-header_attr = ZoneAttributes()
-header_attr.setAttributes(color=BackgroundColor.MAGENTA)
+    desc_attr = ZoneAttributes()
+    desc_attr.set_attributes(color=BackgroundColor.RED)
 
-item_attr = ZoneAttributes()
-item_attr.setAttributes(color=BackgroundColor.BLUE)
+    page.draw_box(1, 1, 3, 40, zone_attribute=header_attr)
+    page.set_text('3615 XeNAS - Services', r=2, c=3)
+    page.draw_hr(r=4)
+    page.set_text("N°", 5, 2)
+    page.set_text("Codes de Service", 5, 6)
+    page.set_text("F/min", 5, 35)
 
-desc_attr = ZoneAttributes()
-desc_attr.setAttributes(color=BackgroundColor.RED)
+    page.draw_box(6, 1, 1, 40, item_attr)
+    page.set_text("01", 6, 2)
+    page.set_text("MARNIE", 6, 6)
+    page.set_text("99", 6, 35)
 
-page.drawBox(1, 1, 3, 40, zoneAttribute=header_attr)
-page.setText('3615 XeNAS - Services', r=2, c=3)
-page.drawHR(r=4)
-page.setText("N°", 5, 2)
-page.setText("Codes de Service", 5, 6)
-page.setText("F/min", 5, 35)
+    page.draw_box(7, 6, 3, 35, desc_attr)
+    page.set_text('CSS Marnie interface',7, 7)
+    page.set_text('Try hot dialogs with Mother.',8, 7)
 
-page.drawBox(6, 1, 1, 40, item_attr)
-page.setText("01", 6, 2)
-page.setText("MARNIE", 6, 6)
-page.setText("99", 6, 35)
+    page.draw_box(9, 1, 1, 40, item_attr)
+    page.set_text("02", 9, 2)
+    page.set_text("RAINBOW", 9, 6)
+    page.set_text("FREE", 9, 35)
 
-page.drawBox(7, 6, 3, 35, desc_attr)
-page.setText('CSS Marnie interface',7, 7)
-page.setText('Try hot dialogs with Mother.',8, 7)
+    page.draw_box(10, 6, 2, 35, desc_attr)
+    page.set_text('Taste the rainbow!',10, 7)
+    page.set_text('>Merci les lesbiennes',11, 7)
 
-page.drawBox(9, 1, 1, 40, item_attr)
-page.setText("02", 9, 2)
-page.setText("RAINBOW", 9, 6)
-page.setText("FREE", 9, 35)
+    page.draw_box(12, 1, 1, 40, item_attr)
+    page.set_text("03", 12, 2)
+    page.set_text("HELL", 12, 6)
+    page.set_text("69", 12, 35)
 
-page.drawBox(10, 6, 2, 35, desc_attr)
-page.setText('Taste the rainbow!',10, 7)
-page.setText('>Merci les lesbiennes',11, 7)
+    page.draw_box(13, 6, 4, 35, desc_attr)
+    page.set_text('Galactic War Map Status:',13, 7)
+    page.set_text("VST Halo of Redemption's",14, 7)
+    page.set_text("COMM",15, 7)
+    page.set_text('>FOR DEMOCRACY',16, 7)
 
-page.drawBox(12, 1, 1, 40, item_attr)
-page.setText("03", 12, 2)
-page.setText("HELL", 12, 6)
-page.setText("69", 12, 35)
+    page.draw_box(17, 1, 1, 40, item_attr)
+    page.set_text("04", 17, 2)
+    page.set_text("ISS", 17, 6)
+    page.set_text("100", 17, 35)
 
-page.drawBox(13, 6, 4, 35, desc_attr)
-page.setText('Galactic War Map Status:',13, 7)
-page.setText("VST Halo of Redemption's",14, 7)
-page.setText("COMM",15, 7)
-page.setText('>FOR DEMOCRACY',16, 7)
+    page.draw_box(18, 6, 2, 35, desc_attr)
+    page.set_text('ISS Tracker on earth map.',18, 7)
+    page.set_text('>Levez les yeux au ciel',19, 7)
 
-page.drawBox(17, 1, 1, 40, item_attr)
-page.setText("04", 17, 2)
-page.setText("ISS", 17, 6)
-page.setText("100", 17, 35)
+    page.draw_box(20, 1, 1, 40, item_attr)
+    page.set_text("05", 20, 2)
+    page.set_text("HAIKU", 20, 6)
+    page.set_text("7", 20, 35)
 
-page.drawBox(18, 6, 2, 35, desc_attr)
-page.setText('ISS Tracker on earth map.',18, 7)
-page.setText('>Levez les yeux au ciel',19, 7)
+    page.draw_box(21, 6, 2, 35, desc_attr)
+    page.set_text('Daily Haikus.',21, 7)
+    page.set_text('>calendhaiiku.com',22, 7)
 
-page.drawBox(20, 1, 1, 40, item_attr)
-page.setText("05", 20, 2)
-page.setText("HAIKU", 20, 6)
-page.setText("7", 20, 35)
+    page.to_videotex_file(
+        filename='GUIDE',
+        destination=os.path.join('.', 'src', 'examples', 'ressources')
+    )
 
-page.drawBox(21, 6, 2, 35, desc_attr)
-page.setText('Daily Haikus.',21, 7)
-page.setText('>calendhaiiku.com',22, 7)
-
-page.toVideotexFile(filename='GUIDE', destination=os.path.join('.', 'src', 'examples', 'ressources'))
+if __name__ == '__main__':
+    sys.exit(main())

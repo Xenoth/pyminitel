@@ -1,73 +1,77 @@
+import os
+import sys
 
 from pyminitel.videotex import Videotex
 from pyminitel.attributes import TextAttributes, ZoneAttributes, BackgroundColor, CharacterColor
 
-import os
+def main():
+    page = Videotex()
 
-page = Videotex()
+    zone = ZoneAttributes()
+    zone.set_attributes(highlight=True)
+    page.draw_box(1, 1, 1, 15, zone)
 
-zone = ZoneAttributes()
-zone.setAttributes(highlight=True)
-page.drawBox(1, 1, 1, 15, zone)
+    zone = ZoneAttributes()
+    zone.set_attributes(color=BackgroundColor.WHITE)
+    page.draw_box(4, 2, 10, 20, zone)
 
-zone = ZoneAttributes()
-zone.setAttributes(color=BackgroundColor.WHITE)
-page.drawBox(4, 2, 10, 20, zone)
+    zone.set_attributes(color=BackgroundColor.GREEN)
+    page.draw_box(5, 3, 8, 18, zone)
 
-zone.setAttributes(color=BackgroundColor.GREEN)
-page.drawBox(5, 3, 8, 18, zone)
+    zone.set_attributes(color=BackgroundColor.RED)
+    page.draw_box(7, 25, 10, 15, zone)
 
-zone.setAttributes(color=BackgroundColor.RED)
-page.drawBox(7, 25, 10, 15, zone)
+    zone.set_attributes(color=BackgroundColor.BLACK)
+    page.draw_box(9, 27, 6, 11, zone)
 
-zone.setAttributes(color=BackgroundColor.BLACK)
-page.drawBox(9, 27, 6, 11, zone)
+    zone.set_attributes(color=BackgroundColor.BLUE)
+    page.draw_box(15, 4, 3, 1, zone)
+    zone.set_attributes(color=BackgroundColor.RED)
+    page.draw_box(15, 5, 3, 1, zone)
+    zone.set_attributes(color=BackgroundColor.MAGENTA)
+    page.draw_box(15, 6, 3, 1, zone)
+    zone.set_attributes(color=BackgroundColor.GREEN)
+    page.draw_box(15, 7, 3, 1, zone)
+    zone.set_attributes(color=BackgroundColor.CYAN)
+    page.draw_box(15, 8, 3, 1, zone)
+    zone.set_attributes(color=BackgroundColor.YELLOW)
+    page.draw_box(15, 9, 3, 1, zone)
 
-zone.setAttributes(color=BackgroundColor.BLUE)
-page.drawBox(15, 4, 3, 1, zone)
-zone.setAttributes(color=BackgroundColor.RED)
-page.drawBox(15, 5, 3, 1, zone)
-zone.setAttributes(color=BackgroundColor.MAGENTA)
-page.drawBox(15, 6, 3, 1, zone)
-zone.setAttributes(color=BackgroundColor.GREEN)
-page.drawBox(15, 7, 3, 1, zone)
-zone.setAttributes(color=BackgroundColor.CYAN)
-page.drawBox(15, 8, 3, 1, zone)
-zone.setAttributes(color=BackgroundColor.YELLOW)
-page.drawBox(15, 9, 3, 1, zone)
+    zone.set_attributes(color=BackgroundColor.WHITE)
+    page.draw_box(19, 2, 5, 36, zone)
 
-zone.setAttributes(color=BackgroundColor.WHITE)
-page.drawBox(19, 2, 5, 36, zone)
+    zone.set_attributes(color=BackgroundColor.GREEN)
+    page.draw_box(20, 3, 3, 34, zone)
 
-zone.setAttributes(color=BackgroundColor.GREEN)
-page.drawBox(20, 3, 3, 34, zone)
+    zone.set_attributes(color=BackgroundColor.RED)
+    page.draw_box(21, 4, 1, 32, zone)
 
-zone.setAttributes(color=BackgroundColor.RED)
-page.drawBox(21, 4, 1, 32, zone)
+    page.draw_vr(24)
+    page.draw_hr(1)
+    page.draw_hr(18)
+    page.draw_hr(24)
+    page.draw_vr(1)
+    page.draw_vr(40)
 
-page.drawVR(24)
-page.drawHR(1)
-page.drawHR(18)
-page.drawHR(24)
-page.drawVR(1)
-page.drawVR(40)
+    page.draw_frame(14, 3, 4, 8)
 
-page.drawFrame(14, 3, 4, 8)
+    page.set_text(text='Videotex Page:', r=1, c=2)
 
-page.setText(text='Videotex Page:', r=1, c=2)
+    text_attribute = TextAttributes()
+    text_attribute.set_attributes(color=CharacterColor.BLACK)
+    page.set_text('#Functions', 7, 4, text_attribute)
+    page.set_text('*set_text();', 9, 5, text_attribute)
+    page.set_text('*draw_box().', 10, 5, text_attribute)
 
-textAttribute = TextAttributes()
-textAttribute.setAttributes(color=CharacterColor.BLACK)
-page.setText('#Functions', 7, 4, textAttribute)
-page.setText('*setText();', 9, 5, textAttribute)
-page.setText('*drawBox().', 10, 5, textAttribute)
+    text_attribute = TextAttributes()
+    text_attribute.set_attributes(color=CharacterColor.RED, double_height=True, double_width=True)
+    page.set_text('uwu', 12, 28, text_attribute)
 
-textAttribute = TextAttributes()
-textAttribute.setAttributes(color=CharacterColor.RED, double_height=True, double_width=True)
-page.setText('uwu', 12, 28, textAttribute)
+    text_attribute = TextAttributes()
+    text_attribute.set_attributes(blinking=True)
+    page.set_text(text='Yiff me plenty', r=21, c=14, attribute=text_attribute)
 
-textAttribute = TextAttributes()
-textAttribute.setAttributes(blinking=True)
-page.setText(text='Yiff me plenty', r=21, c=14, attribute=textAttribute)
+    page.to_videotex_file(destination=os.path.join('.', 'src', 'examples', 'ressources'))
 
-page.toVideotexFile(destination=os.path.join('.', 'src', 'examples', 'ressources'))
+if __name__ == '__main__':
+    sys.exit(main())
