@@ -40,7 +40,7 @@ class ISSPage(Page):
         self.page = b''
         self.map = b''
 
-        filepath = os.path.join('.', 'src', 'examples', 'ressources', 'ISS_VGP5_.VDT')
+        filepath = os.path.join('.', 'src', 'examples', 'resources', 'ISS_VGP5_.VDT')
         if not os.path.exists(filepath):
             log(ERROR, "File not found: " + str(filepath))
 
@@ -48,7 +48,7 @@ class ISSPage(Page):
             self.page = binary_file.read()
             binary_file.close()
 
-        filepath = os.path.join('.', 'src', 'examples', 'ressources', 'EARTH_MAP.VDT')
+        filepath = os.path.join('.', 'src', 'examples', 'resources', 'EARTH_MAP.VDT')
         if not os.path.exists(filepath):
             log(ERROR, "File not found: " + str(filepath))
         with open(filepath, 'rb') as binary_file:

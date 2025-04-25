@@ -70,7 +70,7 @@ def main():
 
     minitel.set_zone_attributes(color=BackgroundColor.BLUE)
     minitel.send(Layout.fill_line())
-    minitel.send(Layout.cariage_return())
+    minitel.send(Layout.carriage_return())
     minitel.send(Layout.move_cursor_down())
     msg = "/// WEYLAND-YUTANI CORPORATION \\\\\\ "
 
@@ -85,15 +85,15 @@ def main():
     minitel.reset_text_attributes()
     minitel.set_zone_attributes(color=BackgroundColor.RED)
     minitel.send(Layout.fill_line())
-    minitel.send(Layout.cariage_return())
+    minitel.send(Layout.carriage_return())
     minitel.send(Layout.move_cursor_down())
     minitel.set_zone_attributes(color=BackgroundColor.MAGENTA)
     minitel.send(Layout.fill_line())
-    minitel.send(Layout.cariage_return())
+    minitel.send(Layout.carriage_return())
     minitel.send(Layout.move_cursor_down())
     minitel.set_zone_attributes(color=BackgroundColor.GREEN)
     minitel.send(Layout.fill_line())
-    minitel.send(Layout.cariage_return())
+    minitel.send(Layout.carriage_return())
     minitel.send(Layout.move_cursor_down())
     minitel.set_zone_attributes(color=BackgroundColor.CYAN)
     minitel.send(Layout.fill_line())

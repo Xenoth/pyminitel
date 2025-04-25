@@ -4,10 +4,12 @@ import ipaddress
 import socket
 import _thread
 
+from typing import Optional
 from logging import log, ERROR, DEBUG, INFO, getLogger
 from enum import Enum
 
-from pyminitel.connector import get_connected_serial_minitel
+from pyminitel.minitel import MinitelException
+from pyminitel.connector import get_connected_socket_minitel
 from pyminitel.mode import Mode
 from pyminitel.keyboard import FunctionKeyboardCode, FilterKeyboardCode
 from pyminitel.layout import Layout
@@ -44,23 +46,29 @@ SERVICES = {
 }
 
 class PopupLevel(Enum):
+
     INFO = 1
     ERROR = 2
 
 class ServiceContext():
+
     def __init__(self) -> None:
+
         self.disconnected = False
         self.prompt = ''
         self.is_code_else_ip = True
 
 class ClientHandler():
+
     def __init__(self, client_socket, srv_ctx) -> None:
+
         self.srv_ctx = srv_ctx
-        self.minitel = get_connected_serial_minitel(tcp=client_socket)
+        self.minitel = get_connected_socket_minitel(host='', port=0, tcp=client_socket)
         self.page = b''
 
     def handle(self):
-        filepath = os.path.join('.', 'src', 'examples', 'ressources', 'INDEX_VGP5_.VDT')
+
+        filepath = os.path.join('.', 'src', 'examples', 'resources', 'INDEX_VGP5_.VDT')
         if not os.path.exists(filepath):
             log(ERROR, "File not found: %s", str(filepath))
             sys.exit()
@@ -69,8 +77,8 @@ class ClientHandler():
             self.page = binary_file.read()
             binary_file.close()
 
-
         while not self.srv_ctx.disconnected and self.minitel:
+            self.minitel.set_video_mode(Mode.VIDEOTEX)
             self.minitel.disable_echo()
             self.minitel.disable_keyboard()
             self.minitel.set_screen_page_mode()
@@ -82,6 +90,7 @@ class ClientHandler():
                 self.minitel.read_keyboard(1)
 
     def print_message(self, text: str = '', level: PopupLevel = PopupLevel.INFO):
+
         self.minitel.send(Layout.set_cursor_position(12, 5))
         print(Layout.erase_in_line().hex())
         self.minitel.send(Layout.erase_in_line())
@@ -97,6 +106,7 @@ class ClientHandler():
         self.minitel.send(Layout.set_cursor_position(10, 10))
 
     def callback_quit(self):
+
         self.minitel.clear()
         self.minitel.print('Disconnected - Goodnight')
         self.minitel.beep()
@@ -104,6 +114,7 @@ class ClientHandler():
         self.srv_ctx.disconnected = True
 
     def callback_refresh_page(self):
+
         self.minitel.clear()
         self.minitel.set_screen_page_mode()
         self.minitel.set_video_mode(Mode.VIDEOTEX)
@@ -124,8 +135,8 @@ class ClientHandler():
         self.minitel.beep()
 
     def callback_send(self):
+
         self.minitel.disable_keyboard()
-        print(self.srv_ctx.prompt)
 
         if self.srv_ctx.is_code_else_ip:
             if self.srv_ctx.prompt.lower() not in SERVICES:
@@ -147,7 +158,7 @@ class ClientHandler():
                 ipaddress.ip_address(self.srv_ctx.prompt)
                 self.print_message('IP VALID ')
             except ValueError:
-                self.print_message('IP UNVALID ', level=PopupLevel.ERROR)
+                self.print_message('IP INVALID ', level=PopupLevel.ERROR)
 
         self.minitel.send(Layout.set_cursor_position(10, 10))
         self.minitel.print('..............................')
@@ -157,9 +168,11 @@ class ClientHandler():
         self.minitel.enable_keyboard()
 
     def callback_any(self):
+
         self.minitel.beep()
 
     def callback_guide(self):
+
         self.minitel.disable_keyboard()
         self.minitel.clear_bindings()
         service = GuidePage(self.minitel)
@@ -171,18 +184,19 @@ class ClientHandler():
         self.bind()
         self.minitel.enable_keyboard()
 
-    def callback_printable(self, c: str = None):
+    def callback_printable(self, c: Optional[str] = None):
+
         log(
             level=DEBUG, msg='callback_printable from minitel id ' + str(id(self.minitel))
         )
 
-        if c is not None:
-            if len(self.srv_ctx.prompt) < 18:
-                self.srv_ctx.prompt += c
-                self.minitel.print(c)
+        if c is not None and len(self.srv_ctx.prompt) < 18:
+            self.srv_ctx.prompt += c
+            self.minitel.print(c)
 
 
-    def callback_erease(self):
+    def callback_erase(self):
+
         if len(self.srv_ctx.prompt):
             self.minitel.send(Layout.move_cursor_left(1))
             self.minitel.print('.')
@@ -190,6 +204,7 @@ class ClientHandler():
             self.srv_ctx.prompt = self.srv_ctx.prompt[:-1]
 
     def callback_cancel(self):
+
         if len(self.srv_ctx.prompt):
             self.minitel.disable_keyboard()
             self.minitel.send(Layout.set_cursor_position(10, 10))
@@ -199,6 +214,7 @@ class ClientHandler():
             self.srv_ctx.prompt = ''
 
     def callback_next_previous(self):
+
         self.minitel.disable_keyboard()
         self.minitel.send(Layout.set_cursor_position(10, 1))
         if self.srv_ctx.is_code_else_ip:
@@ -219,11 +235,12 @@ class ClientHandler():
         self.minitel.enable_keyboard()
 
     def bind(self):
+
         self.minitel.bind(FunctionKeyboardCode.Connection_Switch, callback=self.callback_quit)
         self.minitel.bind(FunctionKeyboardCode.Guide, callback=self.callback_guide)
         self.minitel.bind(FunctionKeyboardCode.Send, callback=self.callback_send)
         self.minitel.bind(FunctionKeyboardCode.Repeat, callback=self.callback_refresh_page)
-        self.minitel.bind(FunctionKeyboardCode.Correction, callback=self.callback_erease)
+        self.minitel.bind(FunctionKeyboardCode.Correction, callback=self.callback_erase)
         self.minitel.bind(FunctionKeyboardCode.Cancel, callback=self.callback_cancel)
         self.minitel.bind(FunctionKeyboardCode.Next, callback=self.callback_next_previous)
         self.minitel.bind(FunctionKeyboardCode.Previous, callback=self.callback_next_previous)
@@ -232,6 +249,7 @@ class ClientHandler():
         self.minitel.bind(FilterKeyboardCode.Printable_Keys, callback=self.callback_printable)
 
 def on_new_client(client_socket, addr, srv_ctx):
+
     log(level=DEBUG, msg='on new client thread started: id ' + str(_thread.get_native_id()))
     log(level=INFO, msg="New client: " + str(addr))
 
@@ -256,12 +274,11 @@ def main():
         log(level=INFO, msg='Waiting for clients...')
 
         xenas_socket.listen()
-        # xenas_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         while True:
             c, addr = xenas_socket.accept()
             _thread.start_new_thread(on_new_client, (c, addr, ServiceContext()))
-    except Exception as e:
+    except MinitelException as e:
         log(level=ERROR, msg='Server caught Exception: ' + str(e))
 
     xenas_socket.close()

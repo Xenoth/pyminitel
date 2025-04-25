@@ -39,21 +39,21 @@ class HaikusPage(Page):
         self.fox_l = b''
         self.fox_r = b''
 
-        filepath = os.path.join('.', 'src', 'examples', 'ressources', 'HAIKU.VDT')
+        filepath = os.path.join('.', 'src', 'examples', 'resources', 'HAIKU.VDT')
         if not os.path.exists(filepath):
             log(ERROR, "File not found: " + str(filepath))
         with open(filepath, 'rb') as binary_file:
             self.logo = binary_file.read()
             binary_file.close()
 
-        filepath = os.path.join('.', 'src', 'examples', 'ressources', 'FOX_LEFT.VDT')
+        filepath = os.path.join('.', 'src', 'examples', 'resources', 'FOX_LEFT.VDT')
         if not os.path.exists(filepath):
             log(ERROR, "File not found: " + str(filepath))
         with open(filepath, 'rb') as binary_file:
             self.fox_l = binary_file.read()
             binary_file.close()
 
-        filepath = os.path.join('.', 'src', 'examples', 'ressources', 'FOX_RIGHT.VDT')
+        filepath = os.path.join('.', 'src', 'examples', 'resources', 'FOX_RIGHT.VDT')
         if not os.path.exists(filepath):
             log(ERROR, "File not found: " + str(filepath))
         with open(filepath, 'rb') as binary_file:

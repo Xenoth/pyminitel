@@ -35,7 +35,7 @@ def main():
     page.draw_hr(11)
 
     page.set_text("Refresh", 23, 25)
-    page.set_text('Repetit.', 23, 33, button_attr)
+    page.set_text('Répétit.', 23, 33, button_attr)
 
     page.set_text("Update each 10m", 24, 1)
 
@@ -46,7 +46,7 @@ def main():
 
     page.to_videotex_file(
         filename='HELLDIVERS',
-        destination=os.path.join('.', 'src', 'examples', 'ressources')
+        destination=os.path.join('.', 'src', 'examples', 'resources')
     )
 
 if __name__ == '__main__':

@@ -1,6 +1,18 @@
+"""
+videotex.py
+
+This module contains an utility class to draw and write and get an optimized videotex buffer,
+see pyminitel/src/examples/ for usages.
+
+Author: Pol Bailleux (Xenoth)
+Date: February 2025
+License: MIT
+"""
+
 import os
 import copy
 
+from typing import Optional
 from logging import log, ERROR, WARNING, DEBUG
 
 from pyminitel.attributes import ZoneAttributes, TextAttributes
@@ -10,9 +22,14 @@ from pyminitel.visualization_module import VisualizationModule
 from pyminitel.mode import RESOLUTION, Mode
 
 class Videotex:
+    """ Videotex class.
 
+    Utility class that allows your to enqueue all the layout and content of your page
+    in one optimized buffer.
+    """
     def __init__(self) -> None:
-
+        """Videotex's constructor.
+        """
         self._screen_height = RESOLUTION[Mode.VIDEOTEX][0] - 1
         self._screen_width = RESOLUTION[Mode.VIDEOTEX][1]
 
@@ -30,6 +47,14 @@ class Videotex:
         ]
 
     def to_videotex(self, vm: VisualizationModule) -> bytes:
+        """Generate a videotex buffer from the current state of the Videotex instance.
+
+        Args:
+            vm (VisualizationModule): Visualization module targeted.
+
+        Returns:
+            bytes: Videotex buffer.
+        """
         data = b''
 
         previous_zone = ZoneAttributes()
@@ -62,7 +87,7 @@ class Videotex:
                     if char not in (' ', ''):
                         log(
                             WARNING,
-                            "Minitel requires a withspace on zone's declaration, "
+                            "Minitel requires a whitespace on zone's declaration, "
                             "ignoring char (r=%s c=%s)",
                             str(r),
                             str(c)
@@ -74,7 +99,7 @@ class Videotex:
                     if len(char) > 1:
                         char = char[0:1]
                     if skip:
-                        log(DEBUG, 'setCursorPostion(r=' + str(r) + ', c=' + str(c) +')')
+                        log(DEBUG, 'setCursorPosition(r=' + str(r) + ', c=' + str(c) +')')
                         if r == last_skip_r and not char_double_w_inline:
                             data += Layout.move_cursor_right(c - last_skip_c)
                         elif c == last_skip_c:
@@ -90,7 +115,7 @@ class Videotex:
                     if len(char):
                         data += ascii_to_alphanumerical(c=char, vm=vm)
 
-                # if nothing to do save the least coordonates
+                # if nothing to do save the least coordinates
                 if not len(char) > 0 and not len(diff) > 0:
                     if not skip:
                         skip = True
@@ -108,7 +133,15 @@ class Videotex:
         log(DEBUG, 'VDT generated:' + data.hex())
         return data
 
-    def set_text(self, text: str, r: int, c: int, attribute: TextAttributes = None):
+    def set_text(self, text: str, r: int, c: int, attribute: Optional[TextAttributes] = None):
+        """Write a text at a given position.
+
+        Args:
+            text (str): Text to print.
+            r (int): Row position.
+            c (int): Column position.
+            attribute (TextAttributes, optional): Text's attribute. Defaults to None.
+        """
         if r < 1 or c < 1 or r > self._screen_height or c > self._screen_width:
             log(ERROR, 'Invalid argument passed.')
             return
@@ -131,6 +164,16 @@ class Videotex:
             w: int,
             zone_attribute: ZoneAttributes = ZoneAttributes()
     ):
+        """Draw a filled box to display.
+
+        Args:
+            r (int): Row position.
+            c (int): Column position.
+            h (int): Height of the box.
+            w (int): Width of the box.
+            zone_attribute (ZoneAttributes, optional):  Zone attribute of the box.
+                                                        Defaults to ZoneAttributes().
+        """
         if r < 1 or c < 1 or r + h - 1 > self._screen_height or c + w - 1 > self._screen_width:
             log(ERROR, 'Invalid argument passed.')
             return
@@ -141,18 +184,39 @@ class Videotex:
                 self.text_buf[r - 1 + i][c - 1 + j] = ''
 
     def draw_hr(self, r: int):
+        """Draw an horizontal rule.
+
+        Args:
+            r (int): Row position.
+        """
         if r < 1 or r > 24:
             log(ERROR, 'Invalid argument given.')
         for c in range(self._screen_width):
             self.text_buf[r - 1][c] = '–'
 
     def draw_vr(self, c: int):
+        """Draw a vertical rule.
+
+        Args:
+            c (int): Column position.
+        """
         if c < 1 or c > 40:
             log(ERROR, 'Invalid argument given.')
         for r in range(self._screen_height):
             self.text_buf[r][c - 1] = "|"
 
     def draw_frame(self, r: int, c: int, h: int, w: int):
+        """Draw a frame:
+            +––––+
+            |    |
+            +––––+
+
+        Args:
+            r (int): Row position.
+            c (int): Column position.
+            h (int): Height of the frame.
+            w (int): Width of the frame.
+        """
         if r < 1 or c < 1 or r + h > self._screen_height or c + w > self._screen_width:
             log(ERROR, 'Invalid argument passed.')
             return
@@ -171,7 +235,12 @@ class Videotex:
         self.text_buf[r - 1 + h][c - 1 + w] = '+'
 
     def to_videotex_file(self, destination: str = '.', filename: str = 'PAGE'):
+        """Generate a Videotex file from the current state of the instance.
 
+        Args:
+            destination (str, optional): Destination folder. Defaults to '.'.
+            filename (str, optional): Output filename. Defaults to 'PAGE'.
+        """
         for vm in VisualizationModule:
             vm_str = 'VGP5' if vm == VisualizationModule.VGP5 else 'VGP2'
             filepath = os.path.join(destination, filename + '_' +  vm_str  + '_.VDT')

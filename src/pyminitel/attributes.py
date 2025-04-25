@@ -1,11 +1,24 @@
+"""
+attributes.py
+
+This module contains the Text, Zone and SemiGraphics Attributes classes for pyminitel library.
+
+Author: Pol Bailleux (Xenoth)
+Date: February 2025
+License: MIT
+"""
+
 import copy
 
+from typing import Optional
 from enum import Enum
 
 ESC = b'\x1b'
-DELIMETER = b'\x20'
+DELIMITER = b'\x20'
 
 class CharacterColor(Enum):
+    """ Minitel's character colors enumeration
+    """
     BLACK       = b'\x40'
     RED         = b'\x41'
     GREEN       = b'\x42'
@@ -23,6 +36,8 @@ DOUBLE_WIDTH = b'\x4e'
 DOUBLE_SIZE = b'\x4f'
 
 class BackgroundColor(Enum):
+    """ Minitel's background colors enumeration
+    """
     BLACK       = b'\x50'
     RED         = b'\x51'
     GREEN       = b'\x52'
@@ -46,6 +61,8 @@ UNMASKING = b'\x5F'
 
 
 class SemiGraphicsAttributes():
+    """ Minitel's SemiGraphics attributes class.
+    """
     def __init__(self) -> None:
         self.color = CharacterColor.WHITE
         self.blinking = False
@@ -54,11 +71,24 @@ class SemiGraphicsAttributes():
 
     def set_attributes(
         self,
-        color: CharacterColor = None,
-        blinking: bool = None,
-        background: BackgroundColor = None,
-        disjointed: bool = None
+        color: Optional[CharacterColor] = None,
+        blinking: Optional[bool] = None,
+        background: Optional[BackgroundColor] = None,
+        disjointed: Optional[bool] = None
     ) -> bytes:
+        """Update this instance's attributes and returns a command to send, applying for
+        the next SemiGraphics written on the Minitel.
+
+        Args:
+            color (CharacterColor, optional): SemiGraphics's color. Defaults to None.
+            blinking (bool, optional): SemiGraphics is blinking. Defaults to None.
+            background (BackgroundColor, optional): SemiGraphics's background color.
+                                                    Defaults to None.
+            disjointed (bool, optional): SemiGraphic's is disjointed. Defaults to None.
+
+        Returns:
+            bytes: Minitel's command
+        """
 
         data = b''
 
@@ -89,6 +119,15 @@ class SemiGraphicsAttributes():
         return data
 
     def diff(self, new: "SemiGraphicsAttributes") -> bytes:
+        """ Return the command to update the difference between the current instance,
+        and the new one given, editing only the necessary attributes for optimizations.
+
+        Args:
+            new (SemiGraphicsAttributes): new attribute update to send.
+
+        Returns:
+            bytes: Minitel's command
+        """
         color = None
         blinking = None
         background = None
@@ -112,7 +151,8 @@ class SemiGraphicsAttributes():
         )
 
 class TextAttributes():
-
+    """ Minitel's Text attributes class.
+    """
     def __init__(self) -> None:
         self.color = CharacterColor.WHITE
         self.blinking = False
@@ -122,13 +162,25 @@ class TextAttributes():
 
     def set_attributes(
         self,
-        color: CharacterColor = None,
-        blinking: bool = None,
-        inverted = None,
-        double_height: bool = None,
-        double_width: bool = None
+        color: Optional[CharacterColor] = None,
+        blinking: Optional[bool] = None,
+        inverted: Optional[bool] = None,
+        double_height: Optional[bool] = None,
+        double_width: Optional[bool] = None
     ) -> bytes:
+        """Update this instance's attributes and returns a command to send, applying for
+        the next Text written on the Minitel.
 
+        Args:
+            color (CharacterColor, optional): Text's color. Defaults to None.
+            blinking (bool, optional): Text is blinking. Defaults to None.
+            inverted (_type_, optional): Text and background color's are inverted. Defaults to None.
+            double_height (bool, optional): Text's height increased. Defaults to None.
+            double_width (bool, optional):  Text's width increased. Defaults to None.
+
+        Returns:
+            bytes: Minitel's command
+        """
         data = b''
 
         if color is not None:
@@ -181,6 +233,15 @@ class TextAttributes():
         return data
 
     def diff(self, new: "TextAttributes") -> bytes:
+        """ Return the command to update the difference between the current instance,
+        and the new one given, editing only the necessary attributes for optimizations.
+
+        Args:
+            new (TextAttributes): new attribute update to send.
+
+        Returns:
+            bytes: Minitel's command
+        """
         color = None
         blinking = None
         inverted = None
@@ -213,7 +274,10 @@ class TextAttributes():
         )
 
 class ZoneAttributes():
-
+    """ Minitel's Zone attributes class.
+    To apply a zone send a white space as delimiter
+    until the end of the line or a new zone delimiter.
+    """
     def __init__(self) -> None:
         self.background = BackgroundColor.BLACK
         self.masking = False
@@ -221,11 +285,21 @@ class ZoneAttributes():
 
     def set_attributes(
         self,
-        color: BackgroundColor = None,
-        masking: bool = None,
-        highlight: bool = None
+        color: Optional[BackgroundColor] = None,
+        masking: Optional[bool] = None,
+        highlight: Optional[bool] = None
     ) -> bytes:
+        """Update this instance's attributes and returns a command to send, containing
+        zone delimiter and its attributes.
 
+        Args:
+            color (BackgroundColor, optional): Zone (background) color. Defaults to None.
+            masking (bool, optional): Zone is masking. Defaults to None.
+            highlight (bool, optional): Zone highlighting the text. Defaults to None.
+
+        Returns:
+            bytes: _description_
+        """
         data = b''
 
         if color is not None:
@@ -249,11 +323,21 @@ class ZoneAttributes():
                 self.highlight = False
 
         if len(data):
-            data += DELIMETER
+            data += DELIMITER
 
         return data
 
     def diff(self, new: "ZoneAttributes") -> bytes:
+        """ Return the command to update the difference between the current instance,
+        and the new one given, editing only the necessary attributes for optimizations.
+        This will send another delimiter.
+
+        Args:
+            new (ZoneAttributes): new attribute update to send.
+
+        Returns:
+            bytes: Minitel's command
+        """
         background = None
         highlight = None
         masking = None

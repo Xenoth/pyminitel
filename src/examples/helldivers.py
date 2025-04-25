@@ -96,7 +96,7 @@ class HelldiversPage(Page):
         self.page = b''
         self.logo = b''
 
-        filepath = os.path.join('.', 'src', 'examples', 'ressources', 'HELLDIVERS_VGP5_.VDT')
+        filepath = os.path.join('.', 'src', 'examples', 'resources', 'HELLDIVERS_VGP5_.VDT')
         if not os.path.exists(filepath):
             log(ERROR, "File not found: " + str(filepath))
 
@@ -104,7 +104,7 @@ class HelldiversPage(Page):
             self.page = binary_file.read()
             binary_file.close()
 
-        filepath = os.path.join('.', 'src', 'examples', 'ressources', 'HELLDIVERS_SG.VDT')
+        filepath = os.path.join('.', 'src', 'examples', 'resources', 'HELLDIVERS_SG.VDT')
         if not os.path.exists(filepath):
             log(ERROR, "File not found: " + str(filepath))
         with open(filepath, 'rb') as binary_file:

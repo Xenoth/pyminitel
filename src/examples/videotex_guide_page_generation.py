@@ -84,7 +84,7 @@ def main():
 
     page.to_videotex_file(
         filename='GUIDE',
-        destination=os.path.join('.', 'src', 'examples', 'ressources')
+        destination=os.path.join('.', 'src', 'examples', 'resources')
     )
 
 if __name__ == '__main__':

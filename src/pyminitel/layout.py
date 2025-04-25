@@ -1,5 +1,17 @@
+"""
+layout.py
+
+This module contains layout's methods to send Minitel display commands for pyminitel library.
+
+Author: Pol Bailleux (Xenoth)
+Date: February 2025
+License: MIT
+"""
+
 from enum import Enum
 from logging import log, ERROR
+
+from typing import Optional
 
 from pyminitel.alphanumerical import ascii_to_alphanumerical
 from pyminitel.visualization_module import VisualizationModule
@@ -21,23 +33,54 @@ CUF = b'\x43'       # Cursor Forward
 CUB = b'\x44'       # Cursor Backward
 
 class Layout:
+    """Layout Class
+
+    Contains static methods to construct Minitel's layout command.
+    """
 
     class CSIJ(Enum):
+        """CSI J Class.
+
+        Define values for erase_in_display method.
+
+        Args:
+            Enum (Enum): Enumerator.
+        """
         FROM_CURSOR_TO_EOS = 0
         FROM_SOS_TO_CURSOR = 1
         ALL_SCREEN = 2
 
     class CSIK(Enum):
+        """CSI K Class.
+
+        Define values for erase_in_line method.
+
+        Args:
+            Enum (Enum): Enumerator.
+        """
         FROM_CURSOR_TO_EOL = 0
         FROM_SOL_TO_CURSOR = 1
         ALL_LINE = 2
 
     @staticmethod
-    def cariage_return() -> bytes:
+    def carriage_return() -> bytes:
+        """Return carriage command.
+
+        Returns:
+            bytes: Minitel command.
+        """
         return CR
 
     @staticmethod
     def move_cursor_up(n: int = 1) -> bytes:
+        """Move the cursor up.
+
+        Args:
+            n (int, optional): Number of rows to move up. Defaults to 1.
+
+        Returns:
+            bytes: Minitel command.
+        """
         command = b''
         # TODO - CSI when cursor position is 1
         # if n < 4:
@@ -52,6 +95,14 @@ class Layout:
 
     @staticmethod
     def move_cursor_down(n: int = 1) -> bytes:
+        """Move the cursor down.
+
+        Args:
+            n (int, optional): Number of rows to move down. Defaults to 1.
+
+        Returns:
+            bytes: Minitel command.
+        """
         command = b''
         if n < 4:
             i = 0
@@ -66,6 +117,14 @@ class Layout:
 
     @staticmethod
     def move_cursor_right(n: int = 1) -> bytes:
+        """Move the cursor right.
+
+        Args:
+            n (int, optional): Number of rows to move right. Defaults to 1.
+
+        Returns:
+            bytes: Minitel command.
+        """
         command = b''
         if n < 4:
             i = 0
@@ -79,6 +138,14 @@ class Layout:
 
     @staticmethod
     def move_cursor_left(n: int = 1) -> bytes:
+        """Move the cursor left.
+
+        Args:
+            n (int, optional): Number of rows to move left. Defaults to 1.
+
+        Returns:
+            bytes: Minitel command.
+        """
         command = b''
         if n < 4:
             i = 0
@@ -92,27 +159,68 @@ class Layout:
 
     @staticmethod
     def set_cursor_position(r: int = 1, c: int = 1) -> bytes:
+        """Set the cursor position.
+
+        Args:
+            r (int, optional): Row position. Defaults to 1.
+            c (int, optional): Column position. Defaults to 1.
+
+        Returns:
+            bytes: Minitel command.
+        """
         return CSI + str.encode(str(r)) + b'\x3b' + str.encode(str(c)) + b'\x48'
 
     @staticmethod
     def reset_cursor() -> bytes:
+        """Reset cursor position at row 1; column 1.
+
+        Returns:
+            bytes: Minitel command.
+        """
         return RS
 
     @staticmethod
     def clear() -> bytes:
+        """Clear the screen.
+
+        Returns:
+            bytes: Minitel command.
+        """
         return FF
 
     @staticmethod
     def fill_line() -> bytes:
+        """Fill the current line with the last zone attribute,
+        from the cursor to the end of the line.
+
+        Returns:
+            bytes: Minitel command.
+        """
         return CAN
 
     @staticmethod
     def erase_in_display(n: CSIJ = CSIJ.FROM_CURSOR_TO_EOS) -> bytes:
+        """Erase the display from the cursor position.
+
+        Args:
+            n (CSIJ, optional): Clear method. Defaults to CSIJ.FROM_CURSOR_TO_EOS.
+
+        Returns:
+            bytes: Minitel command.
+        """
         # TODO - Try IRL
         return CSI + str.encode(str(n.value)) + b'\x4a'
 
     @staticmethod
-    def erase_in_line(csi_k = CSIK.ALL_LINE) -> bytes:
+    def erase_in_line(csi_k: CSIK = CSIK.ALL_LINE) -> bytes:
+        """Erase the line from the cursor position.
+
+        Args:
+            csi_k (_type_, optional): Clear method. Defaults to CSIK.ALL_LINE.
+
+        Returns:
+            bytes: Minitel command.
+        """
         # TODO - Try IRL
         command = b''
 
@@ -129,34 +237,81 @@ class Layout:
 
     @staticmethod
     def delete(n: int = 1) -> bytes:
+        """Delete given number of character from the cursor position.
+
+        Args:
+            n (int, optional): number of characters to delete. Defaults to 1.
+
+        Returns:
+            bytes: Minitel command.
+        """
         return CSI + str.encode(str(n).zfill(2)) + b'\x50'
 
     @staticmethod
     def set_insert_mode() -> bytes:
+        """Switch to inserting mode.
+
+        Returns:
+            bytes: Minitel command.
+        """
         # TODO - Try IRL
         return CSI + b'\x34\x68'
 
     @staticmethod
     def unset_insert_mode() -> bytes:
+        """Unswitch from inserting mode.
+
+        Returns:
+            bytes: Minitel command.
+        """
         # TODO - Try IRL
         return CSI + b'\x34\x6c'
 
     @staticmethod
     def delete_next_lines(n: int = 1) -> bytes:
+        """Delete the lines from the cursor position.
+
+        Args:
+            n (int, optional): Number of lines. Defaults to 1.
+
+        Returns:
+            bytes: Minitel command.
+        """
         # TODO - Try IRL
         return CSI + str.encode(str(n)) + b'\x4d'
 
     @staticmethod
     def insert_lines(n: int = 1) -> bytes:
+        """Inset lines from the cursor position.
+
+        Args:
+            n (int, optional): Number of lines. Defaults to 1.
+
+        Returns:
+            bytes: Minitel command.
+        """
         # TODO - Try IRL
         return CSI + str.encode(str(n)) + b'\x4c'
 
     @staticmethod
-    def add_sub_section(r: int, c: int, char: str = None) -> bytes:
+    def add_sub_section(r: int, c: int, char: Optional[str] = None) -> bytes:
+        """Add a sub section.
+
+        Args:
+            r (int): Row position.
+            c (int): Column position.
+            char (str, optional): Character. Defaults to None.
+
+        Returns:
+            bytes: Minitel command.
+        """
         # TODO - Try IRL
-        if str is not None:
+        if char is not None:
             if len(char) != 1:
-                log(ERROR, "Invalid argument passer, expected character but got" + char + ".")
+                log(
+                    ERROR,
+                    "Invalid argument passed, expected one character but got" + str(char) + "."
+                )
 
         mask = 1 << 6
 
@@ -169,6 +324,6 @@ class Layout:
         us = US + binary_r + binary_c
 
         if char is not None:
-            us += ascii_to_alphanumerical('A', VisualizationModule.VGP5)
+            us += ascii_to_alphanumerical(char, VisualizationModule.VGP5)
 
         return us

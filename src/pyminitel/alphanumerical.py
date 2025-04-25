@@ -2,7 +2,7 @@
 alphanumerical.py
 
 This module contains the alphanumerical description tables,
-and methods for pyminitel librarie.
+and methods for pyminitel library.
 
 Author: Pol Bailleux (Xenoth)
 Date: February 2025
@@ -10,7 +10,7 @@ License: MIT
 """
 
 from collections import defaultdict
-from logging import log, ERROR
+from logging import log, WARNING, ERROR
 
 from pyminitel import visualization_module
 
@@ -504,7 +504,7 @@ ES = {
 
 def invert_dict(d: dict):
     """
-    Inverts the description tables for bilateral convertions
+    Inverts the description tables for bilateral conversions
 
     Parameters:
     d (str): Description table.
@@ -527,7 +527,7 @@ inverted_ES = invert_dict(ES)
 
 def ascii_to_alphanumerical(c: str, vm: visualization_module.VisualizationModule) -> bytes:
     """
-    Converts standard ASCII to minitel's alphanumerical
+    Converts standard ASCII to Minitel's alphanumerical
 
     Parameters:
     c (str): ASCII character.
@@ -552,7 +552,7 @@ def ascii_to_alphanumerical(c: str, vm: visualization_module.VisualizationModule
     if c in ES:
         return ES[c][0]
 
-    log(ERROR, 'Unable to convert the value "' + str(c) + '"')
+    log(WARNING, 'Unable to convert the value "' + str(c) + '"')
 
     return G0['_'][0]
 
@@ -593,5 +593,5 @@ def alphanumerical_to_ascii(data: bytes) -> tuple[int, str]:
     if data[:1] in inverted_SC:
         return 1, inverted_SC[data[:1]][0]
 
-    log(ERROR, "Unable to convert bytes " + data.hex() + "" )
+    log(WARNING, "Unable to convert bytes " + data.hex() + "" )
     return 1, '_'

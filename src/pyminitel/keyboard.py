@@ -1,19 +1,55 @@
-from aenum import NamedConstant
+"""
+keyboard.py
+
+This module contains keyboard's description table and filters for pyminitel library.
+
+Author: Pol Bailleux (Xenoth)
+Date: February 2025
+License: MIT
+"""
+
+from aenum import NamedConstant # type: ignore
 
 class KeyboardCode(NamedConstant):
+    """KeyboardCode class.
+
+    Abstract class for classes below and binding typing.
+    Args:
+        NamedConstant (_type_): NamedConstant
+    """
     def char(self) -> str:
         raise NotImplementedError()
 
 class FilterKeyboardCode(KeyboardCode):
+    """FilterKeyboardCode class.
+
+    Define general filters to bind a callback on keyboard event.
+
+    Args:
+        KeyboardCode (_type_): KeyboardCode NamedConstant
+    """
     Any_Keys = 1
     Printable_Keys = 2
     Other_Keys = 3
     No_Keys = 4
 
     def char(self):
+        """Unused method for this KeyboardCode.
+
+        Returns:
+            _type_: Empty str.
+        """
         return ''
 
 class FunctionKeyboardCode(KeyboardCode):
+    """FunctionKeyboardCode class.
+
+    Defines Minitel's Function specific keyboard sequences,
+    allows to bind the function keys pressing.
+
+    Args:
+        KeyboardCode (_type_): KeyboardCode NamedConstant
+    """
     Send = b'\x13\x41'
     Previous = b'\x13\x42'
     Repeat = b'\x13\x43'
@@ -27,9 +63,22 @@ class FunctionKeyboardCode(KeyboardCode):
     # Ctrl_Connection_Switch = b'' # Break send to Din or Modem
 
     def char(self) -> str:
+        """Unused method for FunctionKeyboardCode.
+
+        Returns:
+            _type_: Empty str.
+        """
         return ''
 
 class CursorKeyboardCode(KeyboardCode):
+    """CursorKeyboardCode class.
+
+    Defines Minitel's Cursor specific keyboard sequences,
+    allows to bind the cursor keys pressing.
+
+    Args:
+        KeyboardCode (_type_): KeyboardCode NamedConstant
+    """
     Up = b'\x1b\x5b\x41'
     TS_Up = b'\x1b\x5b\x4d' # Delete line
     Down = b'\x1b\x5b\x42'
@@ -45,9 +94,22 @@ class CursorKeyboardCode(KeyboardCode):
     Ctrl_Enter = b'\x1b\x5b\x32\x4a' # Clear page
 
     def char(self) -> str:
+        """Unused method for CursorKeyboardCode.
+
+        Returns:
+            _type_: Empty str.
+        """
         return ''
 
 class VideotexKeyboardCode(KeyboardCode):
+    """VideotexKeyboardCode class.
+
+    Defines Minitel's videotex specific keyboard sequences,
+    allows to bind the alphanumerical keys pressing.
+
+    Args:
+        KeyboardCode (_type_): KeyboardCode NamedConstant
+    """
     Ctrl_Apostrophe = b'\x00'
     Ctrl_A = b'\x01'
     Ctrl_B = b'\x02'
@@ -83,7 +145,7 @@ class VideotexKeyboardCode(KeyboardCode):
     Ctrl_Minus = b'\x1d'
     Ctrl_Full_Stop = b'\x1e'
     Ctrl_Question_Mark = b'\x1f'
-    Spacebar = b'\x20'
+    SpaceBar = b'\x20'
     TS_1 = b'\x21'
     TS_2 = b'\x22'
     Hash = b'\x23'
@@ -202,313 +264,169 @@ class VideotexKeyboardCode(KeyboardCode):
     Ctrl_Repeat = b'\x19\x7a'
     Ctrl_Next = b'\x19\x7b'
 
-    def char(self) -> str:
-        """ Convert the value to modern Unicode """
-        match self:
-            case self.Ctrl_Apostrophe:
-                return '\u0000'
-            case self.Ctrl_A:
-                return '\u0001'
-            case self.Ctrl_B:
-                return '\u0002'
-            case self.Ctrl_C:
-                return '\u0003'
-            case self.Ctrl_D:
-                return '\u0004'
-            case self.Ctrl_E:
-                return '\u0005'
-            case self.Ctrl_F:
-                return '\u0006'
-            case self.Ctrl_G:
-                return '\u0007'
-            case self.Ctrl_H:
-                return '\u0008'
-            case self.Ctrl_I:
-                return '\u0009'
-            case self.Ctrl_J:
-                return '\u000a'
-            case self.Ctrl_Colon:
-                return '\u000a'
-            case self.Ctrl_K:
-                return '\u000b'
-            case self.Ctrl_Semicolon:
-                return '\u000b'
-            case self.Ctrl_L:
-                return '\u000c'
-            case self.Ctrl_M:
-                return '\u000d'
-            case self.Ctrl_Enter:
-                return '\u000d'
-            case self.Ctrl_N:
-                return '\u000e'
-            case self.Ctrl_O:
-                return '\u000f'
-            case self.Ctrl_P:
-                return '\u0010'
-            case self.Ctrl_Q:
-                return '\u0011' # DC1 = CURSOR_ON
-            case self.Ctrl_R:
-                return '\u0012' # DC2 = REP
-            case self.Ctrl_S:
-                return '\u0013' # DC3 = SEP
-            case self.Ctrl_T:
-                return '\u0014' # DC4 = CURSOR_OFF
-            case self.Ctrl_U:
-                return '\u0015'
-            case self.Ctrl_V:
-                return '\u0016'
-            case self.Ctrl_W:
-                return '\u0017'
-            case self.Ctrl_X:
-                return '\u0018'
-            case self.Ctrl_Y:
-                return '\u008e' # SS2
-            case self.Ctrl_Z:
-                return '\u001a'
-            case self.Esc:
-                return '\u001b'
-            case self.Ctrl_Comma:
-                return '\u001c'
-            case self.Ctrl_Minus:
-                return '\u008f' # SS3
-            case self.Ctrl_Full_Stop:
-                return '\u001e'
-            case self.Ctrl_Question_Mark:
-                return '\u001f'
-            case self.Spacebar:
-                return ' '
-            case self.TS_1:
-                return '!'
-            case self.TS_2:
-                return '"'
-            case self.Hash:
-                return '#'
-            case self.TS_3:
-                return '#'
-            case self.TS_4:
-                return '$'
-            case self.TS_5:
-                return '%'
-            case self.TS_6:
-                return '&'
-            case self.Apostrophe:
-                return "'"
-            case self.TS_7:
-                return "'"
-            case self.TS_8:
-                return '('
-            case self.TS_9:
-                return ')'
-            case self.Star:
-                return '*'
-            case self.TS_Colon:
-                return '*'
-            case self.TS_Semicolon:
-                return '+'
-            case self.Comma:
-                return ','
-            case self.Minus:
-                return '-'
-            case self.Full_Stop:
-                return '.'
-            case self.TS_Question_Mark:
-                return '/'
-            case self.Num_0:
-                return '0'
-            case self.Num_1:
-                return '1'
-            case self.Num_2:
-                return '2'
-            case self.Num_3:
-                return '3'
-            case self.Num_4:
-                return '4'
-            case self.Num_5:
-                return '5'
-            case self.Num_6:
-                return '6'
-            case self.Num_7:
-                return '7'
-            case self.Num_8:
-                return '8'
-            case self.Num_9:
-                return '9'
-            case self.Colon:
-                return ':'
-            case self.Semicolon:
-                return ';'
-            case self.TS_Comma:
-                return '<'
-            case self.TS_Minus:
-                return '='
-            case self.TS_Full_Stop:
-                return '>'
-            case self.Question_Mark:
-                return '?'
-            case self.TS_Apostrophe:
-                return '@'
-            case self.A:
-                return 'A'
-            case self.B:
-                return 'B'
-            case self.C:
-                return 'C'
-            case self.D:
-                return 'D'
-            case self.E:
-                return 'E'
-            case self.F:
-                return 'F'
-            case self.G:
-                return 'G'
-            case self.H:
-                return 'H'
-            case self.I:
-                return 'I'
-            case self.J:
-                return 'J'
-            case self.K:
-                return 'K'
-            case self.L:
-                return 'L'
-            case self.M:
-                return 'M'
-            case self.N:
-                return 'N'
-            case self.O:
-                return 'O'
-            case self.P:
-                return 'P'
-            case self.Q:
-                return 'Q'
-            case self.R:
-                return 'R'
-            case self.S:
-                return 'S'
-            case self.T:
-                return 'T'
-            case self.U:
-                return 'U'
-            case self.V:
-                return 'V'
-            case self.W:
-                return 'W'
-            case self.X:
-                return 'X'
-            case self.Y:
-                return 'Y'
-            case self.Z:
-                return 'Z'
-            case self.TS_Star:
-                return '['
-            case self.TS_CANCEL:
-                return '\\'
-            case self.TS_Hash:
-                return ']'
-            case self.TS_0:
-                return '↑'
-            case self.Ctrl_6:
-                return '_'
-            case self.Ctrl_5:
-                return '-'
-            case self.TS_A:
-                return 'a'
-            case self.TS_B:
-                return 'b'
-            case self.TS_C:
-                return 'c'
-            case self.TS_D:
-                return 'd'
-            case self.TS_E:
-                return 'e'
-            case self.TS_F:
-                return 'f'
-            case self.TS_G:
-                return 'g'
-            case self.TS_H:
-                return 'h'
-            case self.TS_I:
-                return 'i'
-            case self.TS_J:
-                return 'j'
-            case self.TS_K:
-                return 'k'
-            case self.TS_L:
-                return 'l'
-            case self.TS_M:
-                return 'm'
-            case self.TS_N:
-                return 'n'
-            case self.TS_O:
-                return 'o'
-            case self.TS_P:
-                return 'p'
-            case self.TS_Q:
-                return 'q'
-            case self.TS_R:
-                return 'r'
-            case self.TS_S:
-                return 's'
-            case self.TS_T:
-                return 't'
-            case self.TS_U:
-                return 'u'
-            case self.TS_V:
-                return 'v'
-            case self.TS_W:
-                return 'w'
-            case self.TS_X:
-                return 'x'
-            case self.TS_Y:
-                return 'y'
-            case self.TS_Z:
-                return 'z'
-            case self.Ctrl_1:
-                return '|'
-            case self.TS_Repeat:
-                return '|'
-            case self.Ctrl_2:
-                return '|'
-            case self.Ctrl_3:
-                return '|'
-            case self.TS_Send:
-                return '|'
-            case self.Ctrl_4:
-                return '_'
-            case self.Ctrl_Left:
-                return '█'
-            # Two and Three bytes Codes
-            case self.Ctrl_Cancel:
-                return '£'
-            case self.TS_Correction:
-                return '§'
-            case self.Ctrl_8:
-                return '←'
-            case self.Ctrl_9:
-                return '→'
-            case self.Ctrl_Hash:
-                return '↓'
-            case self.Ctrl_0:
-                return '°'
-            case self.Ctrl_Star:
-                return '±'
-            case self.Ctrl_7:
-                return '÷'
-            case self.TS_Next:
-                return '`'
-            case self.TS_Previous:
-                return '´'
-            case self.TS_Summary:
-                return '^'
-            case self.TS_Guide:
-                return '¨'
-            case self.Ctrl_Correction:
-                return 'ç'
-            case self.Ctrl_Return:
-                return 'Œ'
-            case self.Ctrl_Repeat:
-                return 'œ'
-            case self.Ctrl_Next:
-                return 'β'
+    videotext_to_unicode_table = {
+        Ctrl_Apostrophe: '\u0000',
+        Ctrl_A: '\u0001',
+        Ctrl_B: '\u0002',
+        Ctrl_C: '\u0003',
+        Ctrl_D: '\u0004',
+        Ctrl_E: '\u0005',
+        Ctrl_F: '\u0006',
+        Ctrl_G: '\u0007',
+        Ctrl_H: '\u0008',
+        Ctrl_I: '\u0009',
+        Ctrl_J: '\u000a',
+        Ctrl_Colon: '\u000a',
+        Ctrl_K: '\u000b',
+        Ctrl_Semicolon: '\u000b',
+        Ctrl_L: '\u000c',
+        Ctrl_M: '\u000d',
+        Ctrl_Enter: '\u000d',
+        Ctrl_N: '\u000e',
+        Ctrl_O: '\u000f',
+        Ctrl_P: '\u0010',
+        Ctrl_Q: '\u0011', # DC1 = CURSOR_ON
+        Ctrl_R: '\u0012', # DC2 = REP
+        Ctrl_S: '\u0013', # DC3 = SEP
+        Ctrl_T: '\u0014', # DC4 = CURSOR_OFF
+        Ctrl_U: '\u0015',
+        Ctrl_V: '\u0016',
+        Ctrl_W: '\u0017',
+        Ctrl_X: '\u0018',
+        Ctrl_Y: '\u008e', # SS2
+        Ctrl_Z: '\u001a',
+        Esc: '\u001b',
+        Ctrl_Comma: '\u001c',
+        Ctrl_Minus: '\u008f', # SS3
+        Ctrl_Full_Stop: '\u001e',
+        Ctrl_Question_Mark: '\u001f',
+        SpaceBar: ' ',
+        TS_1: '!',
+        TS_2: '"',
+        Hash: '#',
+        TS_3: '#',
+        TS_4: '$',
+        TS_5: '%',
+        TS_6: '&',
+        Apostrophe: "'",
+        TS_7: "'",
+        TS_8: '(',
+        TS_9: ')',
+        Star: '*',
+        TS_Colon: '*',
+        TS_Semicolon: '+',
+        Comma: ',',
+        Minus: '-',
+        Full_Stop: '.',
+        TS_Question_Mark: '/',
+        Num_0: '0',
+        Num_1: '1',
+        Num_2: '2',
+        Num_3: '3',
+        Num_4: '4',
+        Num_5: '5',
+        Num_6: '6',
+        Num_7: '7',
+        Num_8: '8',
+        Num_9: '9',
+        Colon: ':',
+        Semicolon: ';',
+        TS_Comma: '<',
+        TS_Minus: '=',
+        TS_Full_Stop: '>',
+        Question_Mark: '?',
+        TS_Apostrophe: '@',
+        A: 'A',
+        B: 'B',
+        C: 'C',
+        D: 'D',
+        E: 'E',
+        F: 'F',
+        G: 'G',
+        H: 'H',
+        I: 'I',
+        J: 'J',
+        K: 'K',
+        L: 'L',
+        M: 'M',
+        N: 'N',
+        O: 'O',
+        P: 'P',
+        Q: 'Q',
+        R: 'R',
+        S: 'S',
+        T: 'T',
+        U: 'U',
+        V: 'V',
+        W: 'W',
+        X: 'X',
+        Y: 'Y',
+        Z: 'Z',
+        TS_Star: '[',
+        TS_CANCEL: '\\',
+        TS_Hash: ']',
+        TS_0: '↑',
+        Ctrl_6: '_',
+        Ctrl_5: '-',
+        TS_A: 'a',
+        TS_B: 'b',
+        TS_C: 'c',
+        TS_D: 'd',
+        TS_E: 'e',
+        TS_F: 'f',
+        TS_G: 'g',
+        TS_H: 'h',
+        TS_I: 'i',
+        TS_J: 'j',
+        TS_K: 'k',
+        TS_L: 'l',
+        TS_M: 'm',
+        TS_N: 'n',
+        TS_O: 'o',
+        TS_P: 'p',
+        TS_Q: 'q',
+        TS_R: 'r',
+        TS_S: 's',
+        TS_T: 't',
+        TS_U: 'u',
+        TS_V: 'v',
+        TS_W: 'w',
+        TS_X: 'x',
+        TS_Y: 'y',
+        TS_Z: 'z',
+        Ctrl_1: '|',
+        TS_Repeat: '|',
+        Ctrl_2: '|',
+        Ctrl_3: '|',
+        TS_Send: '|',
+        Ctrl_4: '_',
+        Ctrl_Left: '█',
+        # Two and Three bytes Codes
+        Ctrl_Cancel: '£',
+        TS_Correction: '§',
+        Ctrl_8: '←',
+        Ctrl_9: '→',
+        Ctrl_Hash: '↓',
+        Ctrl_0: '°',
+        Ctrl_Star: '±',
+        Ctrl_7: '÷',
+        TS_Next: '`',
+        TS_Previous: '´',
+        TS_Summary: '^',
+        TS_Guide: '¨',
+        Ctrl_Correction: 'ç',
+        Ctrl_Return: 'Œ',
+        Ctrl_Repeat: 'œ',
+        Ctrl_Next: 'β'
+    }   
 
+    def char(self) -> str:
+        """Convert the value to modern Unicode.
+
+        Returns:
+            str: ASCII Unicode string.
+        """
+
+        if self in VideotexKeyboardCode.videotext_to_unicode_table:
+            return VideotexKeyboardCode.videotext_to_unicode_table[self]
         return ''

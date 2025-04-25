@@ -1,6 +1,7 @@
 import time
 import textwrap
 
+from typing import Optional
 from nltk.chat.util import Chat, reflections
 
 from pyminitel.minitel import Minitel
@@ -29,7 +30,7 @@ pairs = [
         r"(.*)marnie(.*)|(.*)ship(.*)|(.*)css marnie(.*)",
         [
             "CSS MARNIE is a cargo spaceship running with 4 active crews. "
-            "MARNIE is the propertry of HIRAGINI CORPORATION."
+            "MARNIE is the property of HIRAGINI CORPORATION."
         ],
     ],
     [
@@ -37,14 +38,14 @@ pairs = [
         "(.*)company(.*)|"
         "(.*)corporation(.*)|"
         "(.*)owner(.*)|"
-        "(.*)conceptor(.*)|"
+        "(.*)designed(.*)|"
         "(.*)employer(.*)",
-        ["HIRAGINI is my CONCEPTOR and the OWNER of MARNIE. The COMPANY is your EMPLOYER"],
+        ["HIRAGINI is my DESIGNER and the OWNER of MARNIE. The COMPANY is your EMPLOYER"],
     ],
     [
         r"how are you?|(.*)status(.*)|(.*)report(.*)",
         [
-            "All my systemes are nominals, and MARNIE is running well.",
+            "All my systems are nominals, and MARNIE is running well.",
         ],
     ],
     [
@@ -200,7 +201,7 @@ class MarniePage(Page):
         #             {"role": "system", "content": "You are the board computer AI of a spaceship,
         #              the CSS MARNIE. This ship is a Cargo/Towing Ship.
         #              Details of the ship: 37.000 to 87.000 metrics, Two F-563 engines,
-        #               M-class ship, Harigini Corporation, 5 active crews.
+        #               M-class ship, HIRAGINI Corporation, 5 active crews.
         #               Short Answers, feel cold."},
         #             {"role": "user", "content": self.prompt}
         #         ]
@@ -240,7 +241,7 @@ class MarniePage(Page):
     def callback_any(self):
         self.minitel.beep()
 
-    def callback_printable(self, c: str = None):
+    def callback_printable(self, c: Optional[str] = None):
         if c is not None:
             if len(self.prompt) < 18:
                 self.prompt += c
@@ -248,7 +249,7 @@ class MarniePage(Page):
                     ascii_to_alphanumerical(c=c, vm=self.minitel.get_visualization_module())
                 )
 
-    def callback_erease(self):
+    def callback_erase(self):
         if len(self.prompt) > 0:
             self.minitel.send(Layout.move_cursor_left(1))
             self.minitel.print('.')
@@ -280,7 +281,7 @@ class MarniePage(Page):
         self.minitel.bind(FunctionKeyboardCode.Summary, callback=self.callback_quit)
         self.minitel.bind(FunctionKeyboardCode.Send, callback=self.callback_send)
         self.minitel.bind(FunctionKeyboardCode.Repeat, callback=self.print_page)
-        self.minitel.bind(FunctionKeyboardCode.Correction, callback=self.callback_erease)
+        self.minitel.bind(FunctionKeyboardCode.Correction, callback=self.callback_erase)
         self.minitel.bind(FunctionKeyboardCode.Cancel, callback=self.callback_cancel)
 
         self.minitel.bind(FilterKeyboardCode.Any_Keys, callback=self.callback_any)

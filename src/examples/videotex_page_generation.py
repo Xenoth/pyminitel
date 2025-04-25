@@ -71,7 +71,7 @@ def main():
     text_attribute.set_attributes(blinking=True)
     page.set_text(text='Yiff me plenty', r=21, c=14, attribute=text_attribute)
 
-    page.to_videotex_file(destination=os.path.join('.', 'src', 'examples', 'ressources'))
+    page.to_videotex_file(destination=os.path.join('.', 'src', 'examples', 'resources'))
 
 if __name__ == '__main__':
     sys.exit(main())
