@@ -9,6 +9,7 @@ License: MIT
 """
 
 from enum import Enum
+from typing import Final
 
 class Mode(Enum):
     """Mode class.
@@ -18,10 +19,11 @@ class Mode(Enum):
     Args:
         Enum (Enum): Enumerator.
     """
+
     VIDEOTEX = 1
     MIXED = 2
 
-RESOLUTION = {
+RESOLUTION: Final[dict[Mode, list[int]]] = {
         Mode.VIDEOTEX: [
             25,
             40,

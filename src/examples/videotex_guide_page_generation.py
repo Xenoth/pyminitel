@@ -2,31 +2,38 @@ import os
 import sys
 
 from pyminitel.videotex import Videotex
-from pyminitel.attributes import TextAttributes, ZoneAttributes, BackgroundColor, CharacterColor
+from pyminitel.attributes import (
+    TextAttributes,
+    TextAttributesState,
+    ZoneAttributes,
+    ZoneAttributesState,
+    BackgroundColor,
+    CharacterColor
+)
 
-def main():
-    page = Videotex()
+def main() -> int:
+    page: Videotex = Videotex()
 
-    button_attr = TextAttributes()
-    button_attr.set_attributes(CharacterColor.WHITE, inverted=True)
+    button_attr: TextAttributes = TextAttributes()
+    button_attr.set_attributes(state=TextAttributesState(CharacterColor.WHITE, inverted=True))
 
-    double_h_attr = TextAttributes()
-    double_h_attr.set_attributes(double_height=True)
+    double_h_attr: TextAttributes = TextAttributes()
+    double_h_attr.set_attributes(state=TextAttributesState(double_height=True))
 
-    double_attr = TextAttributes()
-    double_attr.set_attributes(double_height=True, double_width=True)
+    double_attr: TextAttributes = TextAttributes()
+    double_attr.set_attributes(state=TextAttributesState(double_height=True, double_width=True))
 
-    underlined = ZoneAttributes()
-    underlined.set_attributes(highlight=True)
+    underlined: ZoneAttributes = ZoneAttributes()
+    underlined.set_attributes(state=ZoneAttributesState(highlight=True))
 
-    header_attr = ZoneAttributes()
-    header_attr.set_attributes(color=BackgroundColor.MAGENTA)
+    header_attr: ZoneAttributes = ZoneAttributes()
+    header_attr.set_attributes(state=ZoneAttributesState(background=BackgroundColor.MAGENTA))
 
-    item_attr = ZoneAttributes()
-    item_attr.set_attributes(color=BackgroundColor.BLUE)
+    item_attr: ZoneAttributes = ZoneAttributes()
+    item_attr.set_attributes(state=ZoneAttributesState(background=BackgroundColor.BLUE))
 
-    desc_attr = ZoneAttributes()
-    desc_attr.set_attributes(color=BackgroundColor.RED)
+    desc_attr: ZoneAttributes = ZoneAttributes()
+    desc_attr.set_attributes(state=ZoneAttributesState(background=BackgroundColor.RED))
 
     page.draw_box(1, 1, 3, 40, zone_attribute=header_attr)
     page.set_text('3615 XeNAS - Services', r=2, c=3)
@@ -86,6 +93,8 @@ def main():
         filename='GUIDE',
         destination=os.path.join('.', 'src', 'examples', 'resources')
     )
+
+    return os.EX_OK
 
 if __name__ == '__main__':
     sys.exit(main())

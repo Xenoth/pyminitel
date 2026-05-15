@@ -12,12 +12,11 @@ License: MIT
 import time
 import threading
 
-from typing import Optional
-
 from threading import Thread, Event
 from abc import ABCMeta, abstractmethod
 from logging import log, WARNING, DEBUG
 from queue import Queue, Empty
+from typing import Any
 
 from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 
@@ -30,16 +29,15 @@ class MinitelDisconnectedException(CommException):
     pass
 
 class Comm(Thread, metaclass=ABCMeta):
-
     def __init__(self) -> None:
-
-        self._timeout: Optional[float] = None
+        self._timeout: float | None = None
 
         self.__stop_event: Event = Event()
         self._out_messages: Queue = Queue()
 
         log(level=DEBUG, msg='Event object: id ' + str(id(self.__stop_event)))
         log(level=DEBUG, msg='Queue object: id ' + str(id(self._out_messages)))
+
         super().__init__()
 
     def put(self, data: bytes) -> None:
@@ -54,10 +52,10 @@ class Comm(Thread, metaclass=ABCMeta):
     def stopped(self) -> bool:
         return self.__stop_event.is_set()
 
-    def get_timeout(self) -> Optional[float]:
+    def get_timeout(self) -> float | None:
         return self._timeout
 
-    def set_timeout(self, timeout: Optional[float] = None) -> None:
+    def set_timeout(self, timeout: float | None = None) -> None:
         self._timeout = timeout
 
     def flush(self) -> None:
@@ -76,7 +74,7 @@ class Comm(Thread, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def read(self, n = int) -> bytes:
+    def read(self, n: int) -> bytes:
         pass
 
     @abstractmethod
@@ -84,19 +82,16 @@ class Comm(Thread, metaclass=ABCMeta):
         pass
 
 class CommSerial(Comm):
-
-    __safe_writing = None
-
     def __init__(
             self,
             port: str,
             baudrate: int = 1200,
             safe_writing: bool = False,
-            timeout: Optional[float] = None
+            timeout: float | None = None
     ) -> None:
         self.__ser = Serial(port=port, baudrate=baudrate, bytesize=7, parity='E', stopbits=1)
         self.__ser.flush()
-        self.__safe_writing = safe_writing
+        self.__safe_writing: bool = safe_writing
         self.set_timeout(timeout=timeout)
         super().__init__()
 
@@ -105,9 +100,9 @@ class CommSerial(Comm):
             self.close()
             del self.__ser
 
-    def read(self, n = int) -> bytes:
+    def read(self, n: int) -> bytes:
         try:
-            return self.__ser.read(n)
+            return self.__ser.read(size=n)
         except SerialException as e:
             raise CommException from e
 
@@ -127,8 +122,9 @@ class CommSerial(Comm):
         self.__ser.flush()
         super().flush()
 
-    def set_timeout(self, timeout: Optional[float] = None) -> None:
+    def set_timeout(self, timeout: float | None = None) -> None:
         self.__ser.timeout = timeout
+
         super().set_timeout(timeout=timeout)
 
     def get_baudrate(self) -> int:
@@ -145,15 +141,18 @@ class CommSerial(Comm):
 
         self.open()
 
-    def run(self):
-
+    def run(self) -> None:
         log(level=DEBUG, msg='Started Comm thread: id ' + threading.current_thread().native_id)
-        run = True
+        run: bool = True
         while run:
             try:
-                queued_data = self._out_messages.get(timeout=1, block=True)
+                queued_data: Any = self._out_messages.get(timeout=1, block=True)
                 try:
-                    n = self.__ser.write(queued_data)
+                    n: int | None = self.__ser.write(queued_data)
+
+                    if n is None:
+                        raise CommException("Broken abstraction layer or either bug in pyserial module")
+
                     if self.__safe_writing:
                         time.sleep((n * 12 )/ self.__ser.baudrate)
                         while self.__ser.out_waiting:
@@ -166,18 +165,18 @@ class CommSerial(Comm):
                     run = False
 
 class CommSocket(Comm):
-
-    __socket = None
-    __tcp = None
-
     def __init__(
             self,
             host: str,
             port: int,
-            timeout: Optional[float] = None,
-            tcp: Optional[socket] = None
+            timeout: float | None = None,
+            tcp: socket | None = None
     ) -> None:
+        self.__socket: socket | None = None
+        self.__tcp: socket| None = None
+
         self.set_timeout(timeout=timeout)
+
         if not tcp:
             self.__socket = socket(AF_INET, SOCK_STREAM)
             self.__socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
@@ -185,6 +184,7 @@ class CommSocket(Comm):
             self.open()
         else:
             self.__tcp = tcp
+
         super().__init__()
 
     def __del__(self):
@@ -194,12 +194,15 @@ class CommSocket(Comm):
         if self.__socket:
             del self.__socket
 
-    def read(self, n = int):
+    def read(self, n: int):
+        if self.__tcp is None:
+            raise CommException("No client connected in TCP.")
+
         try:
             self.__tcp.settimeout(self.get_timeout())
-            got = 0
-            data_got = b''
-            data = b''
+            got: int = 0
+            data_got: bytes = b''
+            data: bytes = b''
             while got < n:
                 data_got = self.__tcp.recv(n)
                 if data_got is None:
@@ -227,11 +230,14 @@ class CommSocket(Comm):
         if self.__socket:
             self.__socket.close()
 
-    def set_timeout(self, timeout: Optional[float] = None) -> None:
+    def set_timeout(self, timeout: float | None = None) -> None:
         super().set_timeout(timeout=timeout)
 
-    def run(self):
-        run = True
+    def run(self) -> None:
+        if self.__tcp is None:
+            raise CommException("No client connected in TCP.")
+
+        run: bool = True
         while run:
             try:
                 queued_data = self._out_messages.get(timeout=1, block=True)

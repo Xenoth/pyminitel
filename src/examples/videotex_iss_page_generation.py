@@ -3,22 +3,28 @@ import sys
 import logging
 
 from pyminitel.videotex import Videotex
-from pyminitel.attributes import TextAttributes, ZoneAttributes, CharacterColor
+from pyminitel.attributes import (
+    TextAttributes,
+    TextAttributesState,
+    ZoneAttributes,
+    ZoneAttributesState,
+    CharacterColor
+)
 
-def main():
-    page = Videotex()
+def main() -> int:
+    page: Videotex = Videotex()
 
-    button_attr = TextAttributes()
-    button_attr.set_attributes(CharacterColor.WHITE, inverted=True)
+    button_attr: TextAttributes = TextAttributes()
+    button_attr.set_attributes(state=TextAttributesState(CharacterColor.WHITE, inverted=True))
 
-    double_h_attr = TextAttributes()
-    double_h_attr.set_attributes(double_height=True)
+    double_h_attr: TextAttributes = TextAttributes()
+    double_h_attr.set_attributes(state=TextAttributesState(double_height=True))
 
-    double_attr = TextAttributes()
-    double_attr.set_attributes(double_height=True, double_width=True)
+    double_attr: TextAttributes = TextAttributes()
+    double_attr.set_attributes(state=TextAttributesState(double_height=True, double_width=True))
 
-    underlined = ZoneAttributes()
-    underlined.set_attributes(highlight=True)
+    underlined: ZoneAttributes = ZoneAttributes()
+    underlined.set_attributes(state=ZoneAttributesState(highlight=True))
 
     page.set_text("ISS Tracker", r=2, c=10, attribute=double_attr)
 
@@ -30,8 +36,8 @@ def main():
     page.set_text("Lat.", 4, 23)
     page.set_text("Long.", 4, 33)
 
-    box = ZoneAttributes()
-    box.set_attributes(highlight=False)
+    box: ZoneAttributes = ZoneAttributes()
+    box.set_attributes(state=ZoneAttributesState(highlight=False))
     page.draw_box(r=5, c=1, h=1, w=40, zone_attribute=box)
 
     page.draw_hr(6)
@@ -45,6 +51,8 @@ def main():
         filename='ISS',
         destination=os.path.join('.', 'src', 'examples', 'resources')
     )
+
+    return os.EX_OK
 
 if __name__ == '__main__':
     sys.exit(main())

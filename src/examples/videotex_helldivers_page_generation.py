@@ -3,22 +3,28 @@ import sys
 import logging
 
 from pyminitel.videotex import Videotex
-from pyminitel.attributes import TextAttributes, ZoneAttributes, CharacterColor
+from pyminitel.attributes import (
+    TextAttributes,
+    TextAttributesState,
+    ZoneAttributes,
+    ZoneAttributesState,
+    CharacterColor
+)
 
-def main():
-    page = Videotex()
+def main() -> int:
+    page: Videotex = Videotex()
 
-    button_attr = TextAttributes()
-    button_attr.set_attributes(CharacterColor.WHITE, inverted=True)
+    button_attr: TextAttributes = TextAttributes()
+    button_attr.set_attributes(state=TextAttributesState(CharacterColor.WHITE, inverted=True))
 
-    double_h_attr = TextAttributes()
-    double_h_attr.set_attributes(double_height=True)
+    double_h_attr: TextAttributes = TextAttributes()
+    double_h_attr.set_attributes(state=TextAttributesState(double_height=True))
 
-    double_attr = TextAttributes()
-    double_attr.set_attributes(double_height=True, double_width=True)
+    double_attr: TextAttributes = TextAttributes()
+    double_attr.set_attributes(state=TextAttributesState(double_height=True, double_width=True))
 
-    underlined = ZoneAttributes()
-    underlined.set_attributes(highlight=True)
+    underlined: ZoneAttributes = ZoneAttributes()
+    underlined.set_attributes(state=ZoneAttributesState(highlight=True))
 
     page.draw_box(r=4, c=2, h=1, w=35, zone_attribute=underlined)
 
@@ -48,6 +54,8 @@ def main():
         filename='HELLDIVERS',
         destination=os.path.join('.', 'src', 'examples', 'resources')
     )
+
+    return os.EX_OK
 
 if __name__ == '__main__':
     sys.exit(main())

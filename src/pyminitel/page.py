@@ -28,6 +28,7 @@ class Page(threading.Thread):
         Args:
             minitel (Minitel): Connected minitel client to serve.
         """
+
         super().__init__()
 
         self._stop_event = threading.Event()
@@ -36,9 +37,11 @@ class Page(threading.Thread):
     def stop(self) -> None:
         """Stops the page.
         """
+
         self._stop_event.set()
 
     def stopped(self) -> bool:
         """Check if page has been stopped.
         """
+
         return self._stop_event.is_set()

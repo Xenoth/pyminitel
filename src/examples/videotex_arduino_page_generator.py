@@ -3,21 +3,21 @@ import sys
 import logging
 
 from pyminitel.videotex import Videotex
-from pyminitel.attributes import TextAttributes, CharacterColor
+from pyminitel.attributes import TextAttributes, TextAttributesState, CharacterColor
 
-def main():
+def main() -> int:
     logging.getLogger().setLevel(logging.DEBUG)
 
-    page = Videotex()
+    page: Videotex = Videotex()
 
-    button_attr = TextAttributes()
-    button_attr.set_attributes(CharacterColor.WHITE, inverted=True)
+    button_attr: TextAttributes = TextAttributes()
+    button_attr.set_attributes(state=TextAttributesState(CharacterColor.WHITE, inverted=True))
 
-    error_attr = TextAttributes()
-    error_attr.set_attributes(CharacterColor.RED)
+    error_attr: TextAttributes = TextAttributes()
+    error_attr.set_attributes(state=TextAttributesState(CharacterColor.RED))
 
-    nominal_attr = TextAttributes()
-    nominal_attr.set_attributes(CharacterColor.GREEN)
+    nominal_attr: TextAttributes = TextAttributes()
+    nominal_attr.set_attributes(state=TextAttributesState(CharacterColor.GREEN))
 
     page.set_text('@Xenoth', 15, 33)
 
@@ -43,6 +43,8 @@ def main():
         filename='ARDUINO',
         destination=os.path.join('.', 'src', 'examples', 'resources')
     )
+
+    return os.EX_OK
 
 if __name__ == '__main__':
     sys.exit(main())

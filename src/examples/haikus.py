@@ -4,8 +4,8 @@ import json
 import random
 
 from logging import log, ERROR
-
-import redis
+from typing import LiteralString, Final
+from redis import StrictRedis, Redis
 
 from pyminitel.minitel import Minitel
 from pyminitel.layout import Layout
@@ -13,11 +13,10 @@ from pyminitel.keyboard import FunctionKeyboardCode
 from pyminitel.page import Page
 from pyminitel.videotex import RESOLUTION, Mode
 
+REDIS_HOST: Final[str] = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT: Final[int] = int(os.getenv("REDIS_PORT", "6379"))
 
-redis_host = os.getenv("REDIS_HOST", "localhost")
-redis_port = int(os.getenv("REDIS_PORT", "6379"))
-
-def align_right(field: str, width: int):
+def align_right(field: str, width: int) -> str:
     if len(field) < width:
         return ' ' * (width - len(field)) + field
     if len(field) > width:
@@ -26,20 +25,19 @@ def align_right(field: str, width: int):
     return field
 
 class HaikusPage(Page):
-
-    HAIKUS_KEY = "HAIKUS"
+    HAIKUS_KEY: Final[str] = "HAIKUS"
 
     def __init__(self, minitel: Minitel) -> None:
         super().__init__(minitel)
 
-        self._redis = redis.StrictRedis(host=redis_host, port=redis_port)
+        self._redis: Redis = StrictRedis(host=REDIS_HOST, port=REDIS_PORT)
 
-        self.page = b''
-        self.logo = b''
-        self.fox_l = b''
-        self.fox_r = b''
+        self.page: bytes = b''
+        self.logo: bytes = b''
+        self.fox_l: bytes = b''
+        self.fox_r: bytes = b''
 
-        filepath = os.path.join('.', 'src', 'examples', 'resources', 'HAIKU.VDT')
+        filepath: LiteralString = os.path.join('.', 'src', 'examples', 'resources', 'HAIKU.VDT')
         if not os.path.exists(filepath):
             log(ERROR, "File not found: " + str(filepath))
         with open(filepath, 'rb') as binary_file:
@@ -60,8 +58,7 @@ class HaikusPage(Page):
             self.fox_r = binary_file.read()
             binary_file.close()
 
-    def print_random_daily_haiku(self):
-
+    def print_random_daily_haiku(self) -> None:
         response = self._redis.get(self.HAIKUS_KEY)
         if response is None:
             no_haikus = "No haikus today"
@@ -72,6 +69,7 @@ class HaikusPage(Page):
             self.minitel.print(no_haikus)
 
             return
+
         haikus = json.loads(response)
         if haikus is None or len(haikus) == 0:
             no_haikus = "No haikus today"
@@ -83,25 +81,24 @@ class HaikusPage(Page):
 
             return
 
-        random_index = random.randint(0, len(haikus) - 1)
+        random_index: int = random.randint(0, len(haikus) - 1)
 
-        text = haikus[random_index]['text']
-        lines = text.splitlines()
+        text: str = haikus[random_index]['text']
+        lines: list[str] = text.splitlines()
 
-        r = (RESOLUTION[Mode.VIDEOTEX][0] - len(lines)) // 2
+        r: int = (RESOLUTION[Mode.VIDEOTEX][0] - len(lines)) // 2
         for line in lines:
             c = (RESOLUTION[Mode.VIDEOTEX][1] - len(line)) // 2
             self.minitel.send(Layout.set_cursor_position(r, c))
             self.minitel.print(line)
             r = r + 1
 
-        author = haikus[random_index]['author']
+        author: str = haikus[random_index]['author']
 
         self.minitel.send(Layout.set_cursor_position(r + 1, 10))
         self.minitel.print(align_right('-' + author, 20))
 
-
-    def print_page(self):
+    def print_page(self) -> None:
         self.minitel.clear()
         self.minitel.send(self.page)
         self.minitel.send(self.logo)
@@ -111,14 +108,13 @@ class HaikusPage(Page):
         self.minitel.beep()
         self.minitel.get_minitel_info()
 
-
-    def callback_quit(self):
+    def callback_quit(self) -> None:
         self.minitel.clear()
         time.sleep(2)
         self.minitel.get_minitel_info()
         self.stop()
 
-    def run(self):
+    def run(self) -> None:
         self.minitel.disable_keyboard()
         self.minitel.disable_echo()
         self.minitel.set_connector_baudrate(
@@ -128,8 +124,8 @@ class HaikusPage(Page):
 
         self.minitel.clear_bindings()
 
-        self.minitel.bind(FunctionKeyboardCode.Summary, callback=self.callback_quit)
-        self.minitel.bind(FunctionKeyboardCode.Repeat, callback=self.print_page)
+        self.minitel.bind(FunctionKeyboardCode.SUMMARY, callback=self.callback_quit)
+        self.minitel.bind(FunctionKeyboardCode.REPEAT, callback=self.print_page)
 
         self.minitel.hide_cursor()
         self.minitel.enable_keyboard(update_cursor=False)

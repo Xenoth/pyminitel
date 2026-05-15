@@ -11,8 +11,6 @@ License: MIT
 from enum import Enum
 from logging import log, ERROR
 
-from typing import Optional
-
 from pyminitel.alphanumerical import ascii_to_alphanumerical
 from pyminitel.visualization_module import VisualizationModule
 
@@ -46,6 +44,7 @@ class Layout:
         Args:
             Enum (Enum): Enumerator.
         """
+
         FROM_CURSOR_TO_EOS = 0
         FROM_SOS_TO_CURSOR = 1
         ALL_SCREEN = 2
@@ -58,6 +57,7 @@ class Layout:
         Args:
             Enum (Enum): Enumerator.
         """
+
         FROM_CURSOR_TO_EOL = 0
         FROM_SOL_TO_CURSOR = 1
         ALL_LINE = 2
@@ -69,6 +69,7 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
+
         return CR
 
     @staticmethod
@@ -81,7 +82,8 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
-        command = b''
+
+        command: bytes = b''
         # TODO - CSI when cursor position is 1
         # if n < 4:
         i = 0
@@ -103,7 +105,9 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
-        command = b''
+
+        command: bytes = b''
+
         if n < 4:
             i = 0
             while i < n:
@@ -125,7 +129,9 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
-        command = b''
+
+        command: bytes = b''
+
         if n < 4:
             i = 0
             while i < n:
@@ -146,7 +152,9 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
-        command = b''
+
+        command: bytes = b''
+
         if n < 4:
             i = 0
             while i < n:
@@ -168,6 +176,7 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
+
         return CSI + str.encode(str(r)) + b'\x3b' + str.encode(str(c)) + b'\x48'
 
     @staticmethod
@@ -177,6 +186,7 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
+
         return RS
 
     @staticmethod
@@ -186,6 +196,7 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
+
         return FF
 
     @staticmethod
@@ -196,6 +207,7 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
+
         return CAN
 
     @staticmethod
@@ -208,6 +220,7 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
+
         # TODO - Try IRL
         return CSI + str.encode(str(n.value)) + b'\x4a'
 
@@ -221,8 +234,9 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
+
         # TODO - Try IRL
-        command = b''
+        command: bytes = b''
 
         if  csi_k == Layout.CSIK.FROM_CURSOR_TO_EOL:
             command = b'\x4b'
@@ -245,6 +259,7 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
+
         return CSI + str.encode(str(n).zfill(2)) + b'\x50'
 
     @staticmethod
@@ -254,6 +269,7 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
+
         # TODO - Try IRL
         return CSI + b'\x34\x68'
 
@@ -264,6 +280,7 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
+
         # TODO - Try IRL
         return CSI + b'\x34\x6c'
 
@@ -277,6 +294,7 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
+
         # TODO - Try IRL
         return CSI + str.encode(str(n)) + b'\x4d'
 
@@ -290,11 +308,12 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
+
         # TODO - Try IRL
         return CSI + str.encode(str(n)) + b'\x4c'
 
     @staticmethod
-    def add_sub_section(r: int, c: int, char: Optional[str] = None) -> bytes:
+    def add_sub_section(r: int, c: int, char: str | None = None) -> bytes:
         """Add a sub section.
 
         Args:
@@ -305,6 +324,7 @@ class Layout:
         Returns:
             bytes: Minitel command.
         """
+
         # TODO - Try IRL
         if char is not None:
             if len(char) != 1:
@@ -313,13 +333,13 @@ class Layout:
                     "Invalid argument passed, expected one character but got" + str(char) + "."
                 )
 
-        mask = 1 << 6
+        mask: int = 1 << 6
 
         r |= mask
         c |= mask
 
-        binary_r = r.to_bytes(1, 'little')
-        binary_c = c.to_bytes(1, 'little')
+        binary_r: bytes = r.to_bytes(1, 'little')
+        binary_c: bytes = c.to_bytes(1, 'little')
 
         us = US + binary_r + binary_c
 

@@ -12,7 +12,6 @@ License: MIT
 import glob
 import sys
 
-from typing import Optional
 from logging import log, DEBUG
 
 from socket import socket
@@ -29,10 +28,9 @@ class MinitelNotFoundException(ConnectorException):
 def get_connected_socket_minitel(
     host: str,
     port: int,
-    tcp: Optional[socket] = None,
-    timeout: Optional[float] = None
+    tcp: socket | None = None,
+    timeout: float | None = None
 ) -> Minitel:
-
     try:
         minitel: Minitel = Minitel()
         minitel.connect_socket(host=host, port=port, tcp=tcp, timeout=timeout)
@@ -47,11 +45,10 @@ def get_connected_socket_minitel(
         raise MinitelNotFoundException from e
 
 def get_connected_serial_minitel(
-    port: Optional[str] = None,
-    timeout: Optional[float] = None
+    port: str | None = None,
+    timeout: float | None = None
 ) -> Minitel:
-
-    ports = []
+    ports: list[str] = []
 
     if port is None:
         ports = serial_ports()
@@ -88,6 +85,7 @@ def serial_ports() -> list[str]:
     Returns:
         list: A list of the serial ports available on the system.
     """
+
     if sys.platform.startswith('win'):
         ports = [f'COM{i + 1}' for i in range(256)]
     elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):

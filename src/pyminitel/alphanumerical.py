@@ -11,10 +11,11 @@ License: MIT
 
 from collections import defaultdict
 from logging import log, WARNING, ERROR
+from typing import Final
 
-from pyminitel import visualization_module
+from pyminitel.visualization_module import VisualizationModule
 
-G0 = {
+G0: Final[dict[str, list[bytes]]] = {
     '!': [ b'\x21' ],
     '"': [ b'\x22' ],
     '#': [ b'\x23' ],
@@ -502,7 +503,7 @@ ES = {
     ],
 }
 
-def invert_dict(d: dict):
+def invert_dict(d: dict) -> dict:
     """
     Inverts the description tables for bilateral conversions
 
@@ -512,6 +513,7 @@ def invert_dict(d: dict):
     Returns:
     dict: inverted description table.
     """
+
     inverted = defaultdict(list)
     for key, values in d.items():
         for value in values:
@@ -519,13 +521,13 @@ def invert_dict(d: dict):
 
     return inverted
 
-inverted_G0 = invert_dict(G0)
-inverted_VGP2 = invert_dict(VGP2)
-inverted_VGP5 = invert_dict(VGP5)
-inverted_SC = invert_dict(SC)
-inverted_ES = invert_dict(ES)
+INVERTED_G0: Final[dict] = invert_dict(G0)
+INVERTED_VGP2: Final[dict] = invert_dict(VGP2)
+INVERTED_VGP5: Final[dict] = invert_dict(VGP5)
+INVERTED_SC: Final[dict] = invert_dict(SC)
+INVERTED_ES: Final[dict] = invert_dict(ES)
 
-def ascii_to_alphanumerical(c: str, vm: visualization_module.VisualizationModule) -> bytes:
+def ascii_to_alphanumerical(c: str, vm: VisualizationModule) -> bytes:
     """
     Converts standard ASCII to Minitel's alphanumerical
 
@@ -536,10 +538,11 @@ def ascii_to_alphanumerical(c: str, vm: visualization_module.VisualizationModule
     Returns:
     bytes: The data converted in buffer.
     """
+
     if c in G0:
         return G0[c][0]
 
-    if vm == visualization_module.VisualizationModule.VGP2:
+    if vm == VisualizationModule.VGP2:
         if c in VGP2:
             return VGP2[c][0]
     else:
@@ -556,16 +559,18 @@ def ascii_to_alphanumerical(c: str, vm: visualization_module.VisualizationModule
 
     return G0['_'][0]
 
-def alphanumerical_to_ascii(data: bytes) -> tuple[int, str]:
+def alphanumerical_to_ascii(data: bytes, vm: VisualizationModule) -> tuple[int, str]:
     """
     Converts minitel's alphanumerical to ASCII
 
     Parameters:
     data (bytes): Received Buffer from Minitel.
+    vm (VisualizationModule): The Visualization Module of the Minitel targeted.
 
     Returns:
     tuple[int, str]: A tuple containing the len (int) and a ASCII (str) converted.
     """
+
     len_data = len(data)
 
     if data[0:1] == SS2:
@@ -584,14 +589,17 @@ def alphanumerical_to_ascii(data: bytes) -> tuple[int, str]:
                     "(expected at least 3)",
                     len_data
                 )
-            if data[:3] in inverted_VGP5:
-                return 3, inverted_VGP5[data[:3]][0]
+            if vm is VisualizationModule.VGP5 and data[:3] in INVERTED_VGP5:
+                return 3, INVERTED_VGP5[data[:3]][0]
 
-    if data[:1] in inverted_G0:
-        return 1, inverted_G0[data[:1]][0]
+            if vm is VisualizationModule.VGP2 and data[:3] in INVERTED_VGP2:
+                return 3, INVERTED_VGP5[data[:3]][0]
 
-    if data[:1] in inverted_SC:
-        return 1, inverted_SC[data[:1]][0]
+    if data[:1] in INVERTED_G0:
+        return 1, INVERTED_G0[data[:1]][0]
+
+    if data[:1] in INVERTED_SC:
+        return 1, INVERTED_SC[data[:1]][0]
 
     log(WARNING, "Unable to convert bytes " + data.hex() + "" )
     return 1, '_'

@@ -4,43 +4,47 @@ import time
 import json
 
 from logging import log, ERROR
-
-import redis
+from typing import LiteralString, Final
+from redis import Redis, StrictRedis
 
 from pyminitel.minitel import Minitel
-from pyminitel.attributes import SemiGraphicsAttributes, CharacterColor, BackgroundColor
+from pyminitel.attributes import (
+    SemiGraphicsAttributes,
+    SemiGraphicsAttributesState,
+    CharacterColor,
+    BackgroundColor
+)
 from pyminitel.layout import Layout
 from pyminitel.keyboard import FunctionKeyboardCode
 from pyminitel.page import Page
 from pyminitel.mode import RESOLUTION, Mode
 
-redis_host = os.getenv("REDIS_HOST", "localhost")
-redis_port = int(os.getenv("REDIS_PORT", "6379"))
+REDIS_HOST: Final[str] = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT: Final[int] = int(os.getenv("REDIS_PORT", "6379"))
 
 class ISSPage(Page):
+    MAP_WIDTH: Final[int] = 80
+    MAP_HEIGHT: Final[int] = 48
 
-    MAP_WIDTH = 80
-    MAP_HEIGHT = 48
+    CELL_WIDTH: Final[int] = 2
+    CELL_HEIGHT: Final[int] = 3
 
-    CELL_WIDTH = 2
-    CELL_HEIGHT = 3
+    LATITUDE_RANGE: Final[tuple[int, int]] = (-90, 90)
+    LONGITUDE_RANGE: Final[tuple[int, int]] = (-180, 180)
 
-    LATITUDE_RANGE = (-90, 90)
-    LONGITUDE_RANGE = (-180, 180)
+    MAX_POINTS: Final[int] = 10
 
-    MAX_POINTS = 10
-
-    ISS_KEY_PREFIX = "ISS"
+    ISS_KEY_PREFIX: Final[str] = "ISS"
 
     def __init__(self, minitel: Minitel) -> None:
         super().__init__(minitel)
 
-        self._redis = redis.StrictRedis(host=redis_host, port=redis_port)
+        self._redis: Redis = StrictRedis(host=REDIS_HOST, port=REDIS_PORT)
 
-        self.page = b''
-        self.map = b''
+        self.page : bytes = b''
+        self.map: bytes = b''
 
-        filepath = os.path.join('.', 'src', 'examples', 'resources', 'ISS_VGP5_.VDT')
+        filepath: LiteralString = os.path.join('.', 'src', 'examples', 'resources', 'ISS_VGP5_.VDT')
         if not os.path.exists(filepath):
             log(ERROR, "File not found: " + str(filepath))
 
@@ -51,28 +55,28 @@ class ISSPage(Page):
         filepath = os.path.join('.', 'src', 'examples', 'resources', 'EARTH_MAP.VDT')
         if not os.path.exists(filepath):
             log(ERROR, "File not found: " + str(filepath))
+
         with open(filepath, 'rb') as binary_file:
             self.logo = binary_file.read()
             binary_file.close()
 
-    def geo_to_map(self, lat, lon):
-        x = int(
+    def geo_to_map(self, lat: float, lon: float) -> tuple[int, int]:
+        x: int = int(
             (lon - ISSPage.LONGITUDE_RANGE[0]) / (ISSPage.LONGITUDE_RANGE[1]
             - ISSPage.LONGITUDE_RANGE[0]) * (ISSPage.MAP_WIDTH - 1)
         )
-        y = int(
+        y: int = int(
             (lat - ISSPage.LATITUDE_RANGE[0]) / (ISSPage.LATITUDE_RANGE[1]
             - ISSPage.LATITUDE_RANGE[0]) * (ISSPage.MAP_HEIGHT - 1)
         )
         return x, y
 
-    def get_cell_indices_and_position(self, x, y):
+    def get_cell_indices_and_position(self, x: int, y: int) -> tuple[int, int, int, int]:
+        cell_x: int = int(x // ISSPage.CELL_WIDTH)
+        cell_y: int = int(y // ISSPage.CELL_HEIGHT)
 
-        cell_x = int(x // ISSPage.CELL_WIDTH)
-        cell_y = int(y // ISSPage.CELL_HEIGHT)
-
-        rel_x = int(x % ISSPage.CELL_WIDTH)
-        rel_y = int(y % ISSPage.CELL_HEIGHT)
+        rel_x: int = int(x % ISSPage.CELL_WIDTH)
+        rel_y: int = int(y % ISSPage.CELL_HEIGHT)
 
         return cell_x, cell_y, rel_x, rel_y
 
@@ -84,7 +88,7 @@ class ISSPage(Page):
         return cell
 
     def semi_graphic_to_hex(self, semi_graphic) -> bytes:
-        byte = 0
+        byte: int = 0
         byte += semi_graphic[0]
         byte += semi_graphic[1] << 1
         byte += semi_graphic[2] << 2
@@ -99,7 +103,7 @@ class ISSPage(Page):
 
         return byte.to_bytes()
 
-    def get_all_items(self, key_prefix):
+    def get_all_items(self, key_prefix: str):
         keys = self._redis.keys(f"{key_prefix}:*")
         items = {key.decode('utf-8'): json.loads(self._redis.get(key)) for key in keys}
 
@@ -107,22 +111,22 @@ class ISSPage(Page):
 
         return items
 
-    def print_iss_positions(self):
-
+    def print_iss_positions(self) -> None:
         positions = self.get_all_items(ISSPage.ISS_KEY_PREFIX)
 
-        sorted_positions = dict(
+        sorted_positions: dict = dict(
             sorted(positions.items(), key=lambda x: x[1]['timestamp'], reverse=True)
         )
-        iss_counter = len(sorted_positions)
+        iss_counter: int = len(sorted_positions)
 
-        max_points = ISSPage.MAX_POINTS
+        max_points: int = ISSPage.MAX_POINTS
 
         if iss_counter < ISSPage.MAX_POINTS:
             max_points = iss_counter
 
         printable_position = dict(list(sorted_positions.items())[:max_points])
 
+        last_pos_value: dict
         _, last_pos_value = next(iter(printable_position.items()))
 
         self.minitel.send(Layout.set_cursor_position(5))
@@ -133,7 +137,7 @@ class ISSPage(Page):
         self.minitel.print(str(last_pos_value['iss_position']['latitude']))
         self.minitel.send(Layout.set_cursor_position(5, 32))
         self.minitel.print(str(last_pos_value['iss_position']['longitude']))
-        blinking = True
+        blinking: bool = True
 
         for _, value in printable_position.items():
             x, y = self.geo_to_map(
@@ -144,13 +148,15 @@ class ISSPage(Page):
 
             if cell_x not in (1, RESOLUTION[Mode.VIDEOTEX][1]):
                 semi_graphic = self.render_cell(rel_x, rel_y)
-                data = Layout.set_cursor_position(RESOLUTION[Mode.VIDEOTEX][0] - cell_y - 3, cell_x)
+                data: bytes = Layout.set_cursor_position(RESOLUTION[Mode.VIDEOTEX][0] - cell_y - 3, cell_x)
                 data += b'\x0e'
                 data += SemiGraphicsAttributes().set_attributes(
-                    color=CharacterColor.RED,
-                    blinking=blinking,
-                    background=BackgroundColor.BLUE,
-                    disjointed=True
+                    state=SemiGraphicsAttributesState(
+                        color=CharacterColor.RED,
+                        blinking=blinking,
+                        background=BackgroundColor.BLUE,
+                        disjointed=True
+                    )
                 )
                 data += self.semi_graphic_to_hex(semi_graphic)
                 data += b'\x0f'
@@ -158,8 +164,7 @@ class ISSPage(Page):
                 self.minitel.send(data)
                 blinking = False
 
-
-    def print_page(self):
+    def print_page(self) -> None:
         self.minitel.clear()
         self.minitel.send(self.page)
         self.minitel.send(self.logo)
@@ -168,13 +173,13 @@ class ISSPage(Page):
         self.minitel.get_minitel_info()
 
 
-    def callback_quit(self):
+    def callback_quit(self) -> None:
         self.minitel.clear()
         time.sleep(2)
         self.minitel.get_minitel_info()
         self.stop()
 
-    def run(self):
+    def run(self) -> None:
         self.minitel.disable_keyboard()
         self.minitel.disable_echo()
         self.minitel.set_connector_baudrate(
@@ -184,8 +189,8 @@ class ISSPage(Page):
 
         self.minitel.clear_bindings()
 
-        self.minitel.bind(FunctionKeyboardCode.Summary, callback=self.callback_quit)
-        self.minitel.bind(FunctionKeyboardCode.Repeat, callback=self.print_page)
+        self.minitel.bind(FunctionKeyboardCode.SUMMARY, callback=self.callback_quit)
+        self.minitel.bind(FunctionKeyboardCode.REPEAT, callback=self.print_page)
 
         self.minitel.hide_cursor()
         self.minitel.enable_keyboard(update_cursor=False)

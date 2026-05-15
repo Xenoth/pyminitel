@@ -2,17 +2,17 @@ import os
 import sys
 import logging
 
-from typing import Optional
 from PIL import Image
+from typing import Final
 
 from pyminitel import layout
-from pyminitel.attributes import SemiGraphicsAttributes, CharacterColor, BackgroundColor
+from pyminitel.attributes import SemiGraphicsAttributes, SemiGraphicsAttributesState, CharacterColor, BackgroundColor
 
-SEMI_GRAPHIC_WIDTH = 2
-SEMI_GRAPHIC_HEIGHT = 3
+SEMI_GRAPHIC_WIDTH: Final[int] = 2
+SEMI_GRAPHIC_HEIGHT: Final[int] = 3
 
 def semi_graphic_to_hex(semi_graphic: list[int]) -> bytes:
-    byte = 0
+    byte: int = 0
     byte += semi_graphic[0]
     byte += semi_graphic[1] << 1
     byte += semi_graphic[2] << 2
@@ -40,7 +40,7 @@ def png_to_vdt(
         image_filepath: str,
         offset_r: int = 0,
         offset_c: int = 0,
-        attribute: Optional[SemiGraphicsAttributes] = None
+        attribute: SemiGraphicsAttributes | None = None
     ) -> bytes:
 
     image: Image.Image = Image.open(image_filepath).convert("RGBA")
@@ -64,17 +64,21 @@ def png_to_vdt(
     cur_attr: SemiGraphicsAttributes = SemiGraphicsAttributes()
     if attribute is not None:
         data += cur_attr.set_attributes(
-            color=attribute.color,
-            blinking=attribute.blinking,
-            background=attribute.background,
-            disjointed=attribute.disjointed
+            state=SemiGraphicsAttributesState(
+                color=attribute.color,
+                blinking=attribute.blinking,
+                background=attribute.background,
+                disjointed=attribute.disjointed
+            )
         )
     else:
         data += cur_attr.set_attributes(
-            color=CharacterColor.WHITE,
-            blinking=None,
-            background=BackgroundColor.BLACK,
-            disjointed=False
+            state=SemiGraphicsAttributesState(
+                color=CharacterColor.WHITE,
+                blinking=None,
+                background=BackgroundColor.BLACK,
+                disjointed=False
+            )
         )
 
     j: int = 1
@@ -83,11 +87,11 @@ def png_to_vdt(
         data += layout.Layout.set_cursor_position(r=offset_r + 1, c=offset_c + 1)
         j = offset_r
 
-    for i in range(len(semi_graphics)):
-        if(i % (image_width / 2) == 0):
+    for i, semi_graphic in enumerate(semi_graphics):
+        if i % (image_width / 2) == 0:
             j+=1
             data += layout.Layout.set_cursor_position(r=j, c=offset_c + 1)
-        data += semi_graphic_to_hex(semi_graphic=semi_graphics[i])
+        data += semi_graphic_to_hex(semi_graphic=semi_graphic)
 
     data += b'\x0f'
 
@@ -95,23 +99,28 @@ def png_to_vdt(
 
     return data
 
-def main():
+def main() -> int:
     logging.getLogger().setLevel(logging.DEBUG)
 
-    source_file = "src/examples/resources/fox_right.png"
-    output = "FOX_RIGHT.VDT"
+    output: str = "FOX_RIGHT.VDT"
 
-    attribute = SemiGraphicsAttributes()
+    source_file: str =  os.path.join('.', 'src', 'examples', 'resources', "fox_right.png")
+    destination: str = os.path.join('.', 'src', 'examples', 'resources', output)
+
+    attribute: SemiGraphicsAttributes = SemiGraphicsAttributes()
     attribute.set_attributes(
-        color=CharacterColor.WHITE,
-        blinking=False,
-        background=BackgroundColor.BLACK,
-        disjointed=False
+        state=SemiGraphicsAttributesState(
+            color=CharacterColor.WHITE,
+            blinking=False,
+            background=BackgroundColor.BLACK,
+            disjointed=False
+        )
     )
 
-    destination=os.path.join('.', 'src', 'examples', 'resources', output)
     with open(destination, "wb") as file:
         file.write(png_to_vdt(source_file, offset_r = 22-6, offset_c = 39-7, attribute=attribute))
+
+    return os.EX_OK
 
 if __name__ == '__main__':
     sys.exit(main())
