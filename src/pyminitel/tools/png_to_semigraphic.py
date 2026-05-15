@@ -65,10 +65,10 @@ def png_to_vdt(
     if attribute is not None:
         data += cur_attr.set_attributes(
             state=SemiGraphicsAttributesState(
-                color=attribute.color,
-                blinking=attribute.blinking,
-                background=attribute.background,
-                disjointed=attribute.disjointed
+                color=attribute.state.color,
+                blinking=attribute.state.blinking,
+                background=attribute.state.background,
+                disjointed=attribute.state.disjointed
             )
         )
     else:

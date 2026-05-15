@@ -66,8 +66,8 @@ class Videotex:
         skip: bool = False
 
         char_double_w_inline: bool = False
-        last_skip_r: int | None = None
-        last_skip_c: int | None = None
+        last_skip_r: int = -1
+        last_skip_c: int = -1
 
         for r in range(self._screen_height):
             for c in range(self._screen_width):
@@ -81,7 +81,7 @@ class Videotex:
                     log(ERROR, 'r:' + str(r) + ' c:' +str(c) + ' diff:' + str(text_diff.hex()))
                 data += text_diff
                 if text.state.double_width:
-                    char_double_w_inline: int = True
+                    char_double_w_inline = True
 
                 # Update Zone
                 diff: bytes = previous_zone.diff(zone)

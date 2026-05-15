@@ -142,7 +142,7 @@ class CommSerial(Comm):
         self.open()
 
     def run(self) -> None:
-        log(level=DEBUG, msg='Started Comm thread: id ' + threading.current_thread().native_id)
+        log(level=DEBUG, msg='Started Comm thread: id ' + str(threading.current_thread().native_id))
         run: bool = True
         while run:
             try:
