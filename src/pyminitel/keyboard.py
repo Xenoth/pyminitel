@@ -1,125 +1,150 @@
-from aenum import NamedConstant
+"""
+keyboard.py
 
-class KeyboardCode(NamedConstant):
-    def char(self):
-        raise NotImplementedError()
-    
+This module contains keyboard's description table and filters for pyminitel library.
+
+Author: Pol Bailleux (Xenoth)
+Date: February 2025
+License: MIT
+"""
+
+from enum import Enum
+
+class KeyboardCode(bytes, Enum):
+    """KeyboardCode class.
+
+    Class for binding and typing.
+    """
+
 class FilterKeyboardCode(KeyboardCode):
-    Any_Keys = 1
-    Printable_Keys = 2
-    Other_Keys = 3
-    No_Keys = 4
+    """FilterKeyboardCode class.
 
-    def char(self):
-        return ''
+    Define general filters to bind a callback on keyboard event.
+    """
 
+    ANY_KEYS = 1
+    PRINTABLE_KEYS = 2
+    OTHER_KEYS = 3
+    NO_KEYS = 4
 
 class FunctionKeyboardCode(KeyboardCode):
-    Send = b'\x13\x41'
-    Previous = b'\x13\x42'
-    Repeat = b'\x13\x43'
-    Guide = b'\x13\x44'
-    Cancel = b'\x13\x45'
-    Summary = b'\x13\x46'
-    Correction = b'\x13\x47'
-    Next = b'\x13\x48'
-    Connection_Switch = b'\x13\x49' # To Modem
-    TS_Connection_Switch = b'\x13\x49' # To Din
-    # Ctrl_Connection_Switch = b'' # Break send to Din or Modem
+    """FunctionKeyboardCode class.
 
-    def char(self):
-        return ''
-    
+    Defines Minitel's Function specific keyboard sequences,
+    allows to bind the function keys pressing.
+    """
+
+    SEND = b'\x13\x41'
+    PREVIOUS = b'\x13\x42'
+    REPEAT = b'\x13\x43'
+    GUIDE = b'\x13\x44'
+    CANCEL = b'\x13\x45'
+    SUMMARY = b'\x13\x46'
+    CORRECTION = b'\x13\x47'
+    NEXT = b'\x13\x48'
+    CONNECTION_SWITCH = b'\x13\x49' # To Modem
+    TS_CONNECTION_SWITCH = b'\x13\x49' # To Din
+    # CTRL_CONNECTION_SWITCH = b'' # Break send to Din or Modem
+
 class CursorKeyboardCode(KeyboardCode):
-    Up = b'\x1b\x5b\x41'
-    TS_Up = b'\x1b\x5b\x4d' # Delete line
-    Down = b'\x1b\x5b\x42'
-    TS_Down = b'\x1b\x5b\x4c' # Insert line
-    Right = b'\x1b\x5b\x43'
-    TS_Right_Start = b'\x1b\x5b\x34\x68' # Start character insertion
-    TS_Right_Stop = b'\x1b\x5b\x34\x6c' # Stop character insertion
-    Left = b'\x1b\x5b\x44'
-    TS_Left = b'\x1b\x5b\x50' # Delete character
-    Ctrl_Left = b'\x7f' # DEL
-    Enter = b'\x0d' # CR
-    TS_Enter = b'\x1b\x5b\x48' # Home
-    Ctrl_Enter = b'\x1b\x5b\x32\x4a' # Clear page
+    """CursorKeyboardCode class.
 
-    def char(self):
-        return ''
+    Defines Minitel's Cursor specific keyboard sequences,
+    allows to bind the cursor keys pressing.
+    """
+
+    UP = b'\x1b\x5b\x41'
+    TS_UP = b'\x1b\x5b\x4d' # Delete line
+    DOWN = b'\x1b\x5b\x42'
+    TS_DOWN = b'\x1b\x5b\x4c' # Insert line
+    RIGHT = b'\x1b\x5b\x43'
+    TS_RIGHT_START = b'\x1b\x5b\x34\x68' # Start character insertion
+    TS_RIGHT_STOP = b'\x1b\x5b\x34\x6c' # Stop character insertion
+    LEFT = b'\x1b\x5b\x44'
+    TS_LEFT = b'\x1b\x5b\x50' # Delete character
+    CTRL_LEFT = b'\x7f' # DEL
+    ENTER = b'\x0d' # CR
+    TS_ENTER = b'\x1b\x5b\x48' # Home
+    CTRL_ENTER = b'\x1b\x5b\x32\x4a' # Clear page
 
 class VideotexKeyboardCode(KeyboardCode):
-    Ctrl_Apostrophe = b'\x00'
-    Ctrl_A = b'\x01'
-    Ctrl_B = b'\x02'
-    Ctrl_C = b'\x03'
-    Ctrl_D = b'\x04'
-    Ctrl_E = b'\x05'
-    Ctrl_F = b'\x06'
-    Ctrl_G = b'\x07'
-    Ctrl_H = b'\x08'
-    Ctrl_I = b'\x09'
-    Ctrl_J = b'\x0a'
-    Ctrl_Colon = b'\x0a'
-    Ctrl_K = b'\x0b'
-    Ctrl_Semicolon = b'\x0b'
-    Ctrl_L = b'\x0c'
-    Ctrl_M = b'\x0d'
-    Ctrl_Enter = b'\x0d'
-    Ctrl_N = b'\x0e'
-    Ctrl_O = b'\x0f'
-    Ctrl_P = b'\x10'
-    Ctrl_Q = b'\x11'
-    Ctrl_R = b'\x12'
-    Ctrl_S = b'\x13'
-    Ctrl_T = b'\x14'
-    Ctrl_U = b'\x15'
-    Ctrl_V = b'\x16'
-    Ctrl_W = b'\x17'
-    Ctrl_X = b'\x18'
-    Ctrl_Y = b'\x19'
-    Ctrl_Z = b'\x1a'
-    Esc = b'\x1b'
-    Ctrl_Comma = b'\x1c'
-    Ctrl_Minus = b'\x1d'
-    Ctrl_Full_Stop = b'\x1e'
-    Ctrl_Question_Mark = b'\x1f'
-    Spacebar = b'\x20'
+    """VideotexKeyboardCode class.
+
+    Defines Minitel's videotex specific keyboard sequences,
+    allows to bind the alphanumerical keys pressing.
+    """
+
+    CTRL_APOSTROPHE = b'\x00'
+    CTRL_A = b'\x01'
+    CTRL_B = b'\x02'
+    CTRL_C = b'\x03'
+    CTRL_D = b'\x04'
+    CTRL_E = b'\x05'
+    CTRL_F = b'\x06'
+    CTRL_G = b'\x07'
+    CTRL_H = b'\x08'
+    CTRL_I = b'\x09'
+    CTRL_J = b'\x0a'
+    CTRL_COLON = b'\x0a'
+    CTRL_K = b'\x0b'
+    CTRL_SEMICOLON = b'\x0b'
+    CTRL_L = b'\x0c'
+    CTRL_M = b'\x0d'
+    CTRL_ENTER = b'\x0d'
+    CTRL_N = b'\x0e'
+    CTRL_O = b'\x0f'
+    CTRL_P = b'\x10'
+    CTRL_Q = b'\x11'
+    CTRL_R = b'\x12'
+    CTRL_S = b'\x13'
+    CTRL_T = b'\x14'
+    CTRL_U = b'\x15'
+    CTRL_V = b'\x16'
+    CTRL_W = b'\x17'
+    CTRL_X = b'\x18'
+    CTRL_Y = b'\x19'
+    CTRL_Z = b'\x1a'
+    ESC = b'\x1b'
+    CTRL_COMMA = b'\x1c'
+    CTRL_MINUS = b'\x1d'
+    CTRL_FULL_STOP = b'\x1e'
+    CTRL_QUESTION_MARK = b'\x1f'
+    SPACE_BAR = b'\x20'
     TS_1 = b'\x21'
     TS_2 = b'\x22'
-    Hash = b'\x23'
+    HASH = b'\x23'
     TS_3 = b'\x23'
     TS_4 = b'\x24'
     TS_5 = b'\x25'
     TS_6 = b'\x26'
-    Apostrophe = b'\x27'
+    APOSTROPHE = b'\x27'
     TS_7 = b'\x27'
     TS_8 = b'\x28'
     TS_9 = b'\x29'
-    Star = b'\x2a'
-    TS_Colon = b'\x2a'
-    TS_Semicolon = b'\x2b'
-    Comma = b'\x2c'
-    Minus = b'\x2d'
-    Full_Stop = b'\x2e'
-    TS_Question_Mark = b'\x2f'
-    Num_0 = b'\x30'
-    Num_1 = b'\x31'
-    Num_2 = b'\x32'
-    Num_3 = b'\x33'
-    Num_4 = b'\x34'
-    Num_5 = b'\x35'
-    Num_6 = b'\x36'
-    Num_7 = b'\x37'
-    Num_8 = b'\x38'
-    Num_9 = b'\x39'
-    Colon = b'\x3a'
-    Semicolon = b'\x3b'
-    TS_Comma = b'\x3c'
-    TS_Minus = b'\x3d'
-    TS_Full_Stop = b'\x3e'
-    Question_Mark = b'\x3f'
-    TS_Apostrophe = b'\x40'
+    STAR = b'\x2a'
+    TS_COLON = b'\x2a'
+    TS_SEMICOLON = b'\x2b'
+    COMMA = b'\x2c'
+    MINUS = b'\x2d'
+    FULL_STOP = b'\x2e'
+    TS_QUESTION_MARK = b'\x2f'
+    NUM_0 = b'\x30'
+    NUM_1 = b'\x31'
+    NUM_2 = b'\x32'
+    NUM_3 = b'\x33'
+    NUM_4 = b'\x34'
+    NUM_5 = b'\x35'
+    NUM_6 = b'\x36'
+    NUM_7 = b'\x37'
+    NUM_8 = b'\x38'
+    NUM_9 = b'\x39'
+    COLON = b'\x3a'
+    SEMICOLON = b'\x3b'
+    TS_COMMA = b'\x3c'
+    TS_MINUS = b'\x3d'
+    TS_FULL_STOP = b'\x3e'
+    QUESTION_MARK = b'\x3f'
+    TS_APOSTROPHE = b'\x40'
     A = b'\x41'
     B = b'\x42'
     C = b'\x43'
@@ -146,12 +171,12 @@ class VideotexKeyboardCode(KeyboardCode):
     X = b'\x58'
     Y = b'\x59'
     Z = b'\x5a'
-    TS_Star = b'\x5b'
+    TS_STAR = b'\x5b'
     TS_CANCEL = b'\x5c'
-    TS_Hash = b'\x5d'
+    TS_HASH = b'\x5d'
     TS_0 = b'\x5e'
-    Ctrl_6 = b'\x5f'
-    Ctrl_5 = b'\x60'
+    CTRL_6 = b'\x5f'
+    CTRL_5 = b'\x60'
     TS_A = b'\x61'
     TS_B = b'\x62'
     TS_C = b'\x63'
@@ -178,336 +203,192 @@ class VideotexKeyboardCode(KeyboardCode):
     TS_X = b'\x78'
     TS_Y = b'\x79'
     TS_Z = b'\x7a'
-    Ctrl_1 = b'\x7b'
-    TS_Repeat = b'\x7b'
-    Ctrl_2 = b'\x7c'
-    Ctrl_3 = b'\x7d'
-    TS_Send = b'\x7d'
-    Ctrl_4 = b'\x7e'
-    Ctrl_Left = b'\x7f'
+    CTRL_1 = b'\x7b'
+    TS_REPEAT = b'\x7b'
+    CTRL_2 = b'\x7c'
+    CTRL_3 = b'\x7d'
+    TS_SEND = b'\x7d'
+    CTRL_4 = b'\x7e'
+    CTRL_LEFT = b'\x7f'
     # Two and Three bytes Codes
-    Ctrl_Cancel = b'\x19\x23'
-    TS_Correction = b'\x19\x27'
-    Ctrl_8 = b'\x19\x2c'
-    Ctrl_9 = b'\x19\x2e'
-    Ctrl_Hash = b'\x19\x2f'
-    Ctrl_0 = b'\x19\x30'
-    Ctrl_Star = b'\x19\x31'
-    Ctrl_7 = b'\x19\x38'
-    TS_Next = b'\x19\x41'
-    TS_Previous = b'\x19\x42'
-    TS_Summary = b'\x19\x43'
-    TS_Guide = b'\x19\x48'
-    Ctrl_Correction = b'\x19\x4b\x63'
-    Ctrl_Return = b'\x19\x6a'
-    Ctrl_Repeat = b'\x19\x7a'
-    Ctrl_Next = b'\x19\x7b'
+    CTRL_CANCEL = b'\x19\x23'
+    TS_CORRECTION = b'\x19\x27'
+    CTRL_8 = b'\x19\x2c'
+    CTRL_9 = b'\x19\x2e'
+    CTRL_HASH = b'\x19\x2f'
+    CTRL_0 = b'\x19\x30'
+    CTRL_STAR = b'\x19\x31'
+    CTRL_7 = b'\x19\x38'
+    TS_NEXT = b'\x19\x41'
+    TS_PREVIOUS = b'\x19\x42'
+    TS_SUMMARY = b'\x19\x43'
+    TS_GUIDE = b'\x19\x48'
+    CTRL_CORRECTION = b'\x19\x4b\x63'
+    CTRL_RETURN = b'\x19\x6a'
+    CTRL_REPEAT = b'\x19\x7a'
+    CTRL_NEXT = b'\x19\x7b'
 
-    def char(self):
-        """ Convert the value to modern Unicode """
-        match self:
-            case self.Ctrl_Apostrophe:
-                return '\u0000'
-            case self.Ctrl_A:
-                return '\u0001'
-            case self.Ctrl_B:
-                return '\u0002'
-            case self.Ctrl_C:
-                return '\u0003'
-            case self.Ctrl_D:
-                return '\u0004' 
-            case self.Ctrl_E:
-                return '\u0005' 
-            case self.Ctrl_F:
-                return '\u0006' 
-            case self.Ctrl_G:
-                return '\u0007' 
-            case self.Ctrl_H:
-                return '\u0008'
-            case self.Ctrl_I:
-                return '\u0009' 
-            case self.Ctrl_J:
-                return '\u000a' 
-            case self.Ctrl_Colon:
-                return '\u000a' 
-            case self.Ctrl_K:
-                return '\u000b' 
-            case self.Ctrl_Semicolon: 
-                return '\u000b'
-            case self.Ctrl_L: 
-                return '\u000c'
-            case self.Ctrl_M:
-                return '\u000d'
-            case self.Ctrl_Enter:
-                return '\u000d'
-            case self.Ctrl_N:
-                return '\u000e'
-            case self.Ctrl_O:
-                return '\u000f'
-            case self.Ctrl_P:
-                return '\u0010'
-            case self.Ctrl_Q:
-                return '\u0011' # DC1 = CURSOR_ON
-            case self.Ctrl_R:
-                return '\u0012' # DC2 = REP
-            case self.Ctrl_S:
-                return '\u0013' # DC3 = SEP
-            case self.Ctrl_T:
-                return '\u0014' # DC4 = CURSOR_OFF
-            case self.Ctrl_U:
-                return '\u0015'
-            case self.Ctrl_V:
-                return '\u0016'
-            case self.Ctrl_W:
-                return '\u0017'
-            case self.Ctrl_X:
-                return '\u0018'
-            case self.Ctrl_Y:
-                return '\u008e' # SS2
-            case self.Ctrl_Z:
-                return '\u001a'
-            case self.Esc:
-                return '\u001b'
-            case self.Ctrl_Comma:
-                return '\u001c'
-            case self.Ctrl_Minus:
-                return '\u008f' # SS3
-            case self.Ctrl_Full_Stop:
-                return '\u001e'
-            case self.Ctrl_Question_Mark:
-                return '\u001f'
-            case self.Spacebar:
-                return ' '
-            case self.TS_1:
-                return '!'
-            case self.TS_2:
-                return '"'
-            case self.Hash:
-                return '#'
-            case self.TS_3:
-                return '#'
-            case self.TS_4:
-                return '$'
-            case self.TS_5:
-                return '%'
-            case self.TS_6:
-                return '&'
-            case self.Apostrophe:
-                return "'"
-            case self.TS_7:
-                return "'"
-            case self.TS_8:
-                return '('
-            case self.TS_9:
-                return ')'
-            case self.Star:
-                return '*'
-            case self.TS_Colon:
-                return '*'
-            case self.TS_Semicolon:
-                return '+'
-            case self.Comma:
-                return ','
-            case self.Minus:
-                return '-'
-            case self.Full_Stop:
-                return '.'
-            case self.TS_Question_Mark:
-                return '/'
-            case self.Num_0:
-                return '0'
-            case self.Num_1:
-                return '1'
-            case self.Num_2:
-                return '2'
-            case self.Num_3:
-                return '3'
-            case self.Num_4:
-                return '4'
-            case self.Num_5:
-                return '5'
-            case self.Num_6:
-                return '6'
-            case self.Num_7:
-                return '7'
-            case self.Num_8:
-                return '8'
-            case self.Num_9:
-                return '9'
-            case self.Colon:
-                return ':'
-            case self.Semicolon:
-                return ';'
-            case self.TS_Comma:
-                return '<'
-            case self.TS_Minus: 
-                return '='
-            case self.TS_Full_Stop:
-                return '>'
-            case self.Question_Mark:
-                return '?'
-            case self.TS_Apostrophe:
-                return '@'
-            case self.A:
-                return 'A'
-            case self.B:
-                return 'B'
-            case self.C:
-                return 'C'
-            case self.D:
-                return 'D'
-            case self.E:
-                return 'E'
-            case self.F:
-                return 'F'
-            case self.G:
-                return 'G'
-            case self.H:
-                return 'H'
-            case self.I:
-                return 'I'
-            case self.J:
-                return 'J'
-            case self.K:
-                return 'K'
-            case self.L:
-                return 'L'
-            case self.M:
-                return 'M'
-            case self.N:
-                return 'N'
-            case self.O:
-                return 'O'
-            case self.P:
-                return 'P'
-            case self.Q:
-                return 'Q'
-            case self.R:
-                return 'R'
-            case self.S:
-                return 'S'
-            case self.T:
-                return 'T'
-            case self.U:
-                return 'U'
-            case self.V:
-                return 'V'
-            case self.W:
-                return 'W'
-            case self.X:
-                return 'X'
-            case self.Y:
-                return 'Y'
-            case self.Z:
-                return 'Z'
-            case self.TS_Star:
-                return '['
-            case self.TS_CANCEL:
-                return '\\'
-            case self.TS_Hash:
-                return ']'
-            case self.TS_0:
-                return '↑'
-            case self.Ctrl_6:
-                return '_'
-            case self.Ctrl_5:
-                return '-'
-            case self.TS_A:
-                return 'a'
-            case self.TS_B:
-                return 'b'
-            case self.TS_C:
-                return 'c'
-            case self.TS_D:
-                return 'd'
-            case self.TS_E:
-                return 'e'
-            case self.TS_F:
-                return 'f'
-            case self.TS_G:
-                return 'g'
-            case self.TS_H:
-                return 'h'
-            case self.TS_I:
-                return 'i'
-            case self.TS_J:
-                return 'j'
-            case self.TS_K:
-                return 'k'
-            case self.TS_L:
-                return 'l'
-            case self.TS_M:
-                return 'm'
-            case self.TS_N:
-                return 'n'
-            case self.TS_O:
-                return 'o'
-            case self.TS_P:
-                return 'p'
-            case self.TS_Q:
-                return 'q'
-            case self.TS_R:
-                return 'r'
-            case self.TS_S:
-                return 's'
-            case self.TS_T:
-                return 't'
-            case self.TS_U:
-                return 'u'
-            case self.TS_V:
-                return 'v'
-            case self.TS_W:
-                return 'w'
-            case self.TS_X:
-                return 'x'
-            case self.TS_Y:
-                return 'y'
-            case self.TS_Z:
-                return 'z'
-            case self.Ctrl_1:
-                return '|'
-            case self.TS_Repeat:
-                return '|'
-            case self.Ctrl_2:
-                return '|'
-            case self.Ctrl_3:
-                return '|'
-            case self.TS_Send:
-                return '|'
-            case self.Ctrl_4:
-                return '_'
-            case self.Ctrl_Left:
-                return '█'
-            # Two and Three bytes Codes
-            case self.Ctrl_Cancel:
-                return '£'
-            case self.TS_Correction:
-                return '§'
-            case self.Ctrl_8:
-                return '←'
-            case self.Ctrl_9:
-                return '→'
-            case self.Ctrl_Hash:
-                return '↓'
-            case self.Ctrl_0:
-                return '°'
-            case self.Ctrl_Star:
-                return '±'
-            case self.Ctrl_7:
-                return '÷'
-            case self.TS_Next:
-                return '`'
-            case self.TS_Previous:
-                return '´'
-            case self.TS_Summary:
-                return '^'
-            case self.TS_Guide:
-                return '¨'
-            case self.Ctrl_Correction:
-                return 'ç'
-            case self.Ctrl_Return:
-                return 'Œ'
-            case self.Ctrl_Repeat:
-                return 'œ'
-            case self.Ctrl_Next:
-                return 'β'
+def char(code: VideotexKeyboardCode) -> str:
+    """Convert the value to modern Unicode.
+
+    Returns:
+        str: ASCII Unicode string.
+    """
+
+    videotex_to_unicode_table: dict[VideotexKeyboardCode, str] = {
+        VideotexKeyboardCode.CTRL_APOSTROPHE: '\u0000',
+        VideotexKeyboardCode.CTRL_A: '\u0001',
+        VideotexKeyboardCode.CTRL_B: '\u0002',
+        VideotexKeyboardCode.CTRL_C: '\u0003',
+        VideotexKeyboardCode.CTRL_D: '\u0004',
+        VideotexKeyboardCode.CTRL_E: '\u0005',
+        VideotexKeyboardCode.CTRL_F: '\u0006',
+        VideotexKeyboardCode.CTRL_G: '\u0007',
+        VideotexKeyboardCode.CTRL_H: '\u0008',
+        VideotexKeyboardCode.CTRL_I: '\u0009',
+        VideotexKeyboardCode.CTRL_J: '\u000a',
+        VideotexKeyboardCode.CTRL_COLON: '\u000a',
+        VideotexKeyboardCode.CTRL_K: '\u000b',
+        VideotexKeyboardCode.CTRL_SEMICOLON: '\u000b',
+        VideotexKeyboardCode.CTRL_L: '\u000c',
+        VideotexKeyboardCode.CTRL_M: '\u000d',
+        VideotexKeyboardCode.CTRL_ENTER: '\u000d',
+        VideotexKeyboardCode.CTRL_N: '\u000e',
+        VideotexKeyboardCode.CTRL_O: '\u000f',
+        VideotexKeyboardCode.CTRL_P: '\u0010',
+        VideotexKeyboardCode.CTRL_Q: '\u0011', # DC1 = CURSOR_ON
+        VideotexKeyboardCode.CTRL_R: '\u0012', # DC2 = REP
+        VideotexKeyboardCode.CTRL_S: '\u0013', # DC3 = SEP
+        VideotexKeyboardCode.CTRL_T: '\u0014', # DC4 = CURSOR_OFF
+        VideotexKeyboardCode.CTRL_U: '\u0015',
+        VideotexKeyboardCode.CTRL_V: '\u0016',
+        VideotexKeyboardCode.CTRL_W: '\u0017',
+        VideotexKeyboardCode.CTRL_X: '\u0018',
+        VideotexKeyboardCode.CTRL_Y: '\u008e', # SS2
+        VideotexKeyboardCode.CTRL_Z: '\u001a',
+        VideotexKeyboardCode.ESC: '\u001b',
+        VideotexKeyboardCode.CTRL_COMMA: '\u001c',
+        VideotexKeyboardCode.CTRL_MINUS: '\u008f', # SS3
+        VideotexKeyboardCode.CTRL_FULL_STOP: '\u001e',
+        VideotexKeyboardCode.CTRL_QUESTION_MARK: '\u001f',
+        VideotexKeyboardCode.SPACE_BAR: ' ',
+        VideotexKeyboardCode.TS_1: '!',
+        VideotexKeyboardCode.TS_2: '"',
+        VideotexKeyboardCode.HASH: '#',
+        VideotexKeyboardCode.TS_3: '#',
+        VideotexKeyboardCode.TS_4: '$',
+        VideotexKeyboardCode.TS_5: '%',
+        VideotexKeyboardCode.TS_6: '&',
+        VideotexKeyboardCode.APOSTROPHE: "'",
+        VideotexKeyboardCode.TS_7: "'",
+        VideotexKeyboardCode.TS_8: '(',
+        VideotexKeyboardCode.TS_9: ')',
+        VideotexKeyboardCode.STAR: '*',
+        VideotexKeyboardCode.TS_COLON: '*',
+        VideotexKeyboardCode.TS_SEMICOLON: '+',
+        VideotexKeyboardCode.COMMA: ',',
+        VideotexKeyboardCode.MINUS: '-',
+        VideotexKeyboardCode.FULL_STOP: '.',
+        VideotexKeyboardCode.TS_QUESTION_MARK: '/',
+        VideotexKeyboardCode.NUM_0: '0',
+        VideotexKeyboardCode.NUM_1: '1',
+        VideotexKeyboardCode.NUM_2: '2',
+        VideotexKeyboardCode.NUM_3: '3',
+        VideotexKeyboardCode.NUM_4: '4',
+        VideotexKeyboardCode.NUM_5: '5',
+        VideotexKeyboardCode.NUM_6: '6',
+        VideotexKeyboardCode.NUM_7: '7',
+        VideotexKeyboardCode.NUM_8: '8',
+        VideotexKeyboardCode.NUM_9: '9',
+        VideotexKeyboardCode.COLON: ':',
+        VideotexKeyboardCode.SEMICOLON: ';',
+        VideotexKeyboardCode.TS_COMMA: '<',
+        VideotexKeyboardCode.TS_MINUS: '=',
+        VideotexKeyboardCode.TS_FULL_STOP: '>',
+        VideotexKeyboardCode.QUESTION_MARK: '?',
+        VideotexKeyboardCode.TS_APOSTROPHE: '@',
+        VideotexKeyboardCode.A: 'A',
+        VideotexKeyboardCode.B: 'B',
+        VideotexKeyboardCode.C: 'C',
+        VideotexKeyboardCode.D: 'D',
+        VideotexKeyboardCode.E: 'E',
+        VideotexKeyboardCode.F: 'F',
+        VideotexKeyboardCode.G: 'G',
+        VideotexKeyboardCode.H: 'H',
+        VideotexKeyboardCode.I: 'I',
+        VideotexKeyboardCode.J: 'J',
+        VideotexKeyboardCode.K: 'K',
+        VideotexKeyboardCode.L: 'L',
+        VideotexKeyboardCode.M: 'M',
+        VideotexKeyboardCode.N: 'N',
+        VideotexKeyboardCode.O: 'O',
+        VideotexKeyboardCode.P: 'P',
+        VideotexKeyboardCode.Q: 'Q',
+        VideotexKeyboardCode.R: 'R',
+        VideotexKeyboardCode.S: 'S',
+        VideotexKeyboardCode.T: 'T',
+        VideotexKeyboardCode.U: 'U',
+        VideotexKeyboardCode.V: 'V',
+        VideotexKeyboardCode.W: 'W',
+        VideotexKeyboardCode.X: 'X',
+        VideotexKeyboardCode.Y: 'Y',
+        VideotexKeyboardCode.Z: 'Z',
+        VideotexKeyboardCode.TS_STAR: '[',
+        VideotexKeyboardCode.TS_CANCEL: '\\',
+        VideotexKeyboardCode.TS_HASH: ']',
+        VideotexKeyboardCode.TS_0: '↑',
+        VideotexKeyboardCode.CTRL_6: '_',
+        VideotexKeyboardCode.CTRL_5: '-',
+        VideotexKeyboardCode.TS_A: 'a',
+        VideotexKeyboardCode.TS_B: 'b',
+        VideotexKeyboardCode.TS_C: 'c',
+        VideotexKeyboardCode.TS_D: 'd',
+        VideotexKeyboardCode.TS_E: 'e',
+        VideotexKeyboardCode.TS_F: 'f',
+        VideotexKeyboardCode.TS_G: 'g',
+        VideotexKeyboardCode.TS_H: 'h',
+        VideotexKeyboardCode.TS_I: 'i',
+        VideotexKeyboardCode.TS_J: 'j',
+        VideotexKeyboardCode.TS_K: 'k',
+        VideotexKeyboardCode.TS_L: 'l',
+        VideotexKeyboardCode.TS_M: 'm',
+        VideotexKeyboardCode.TS_N: 'n',
+        VideotexKeyboardCode.TS_O: 'o',
+        VideotexKeyboardCode.TS_P: 'p',
+        VideotexKeyboardCode.TS_Q: 'q',
+        VideotexKeyboardCode.TS_R: 'r',
+        VideotexKeyboardCode.TS_S: 's',
+        VideotexKeyboardCode.TS_T: 't',
+        VideotexKeyboardCode.TS_U: 'u',
+        VideotexKeyboardCode.TS_V: 'v',
+        VideotexKeyboardCode.TS_W: 'w',
+        VideotexKeyboardCode.TS_X: 'x',
+        VideotexKeyboardCode.TS_Y: 'y',
+        VideotexKeyboardCode.TS_Z: 'z',
+        VideotexKeyboardCode.CTRL_1: '|',
+        VideotexKeyboardCode.TS_REPEAT: '|',
+        VideotexKeyboardCode.CTRL_2: '|',
+        VideotexKeyboardCode.CTRL_3: '|',
+        VideotexKeyboardCode.TS_SEND: '|',
+        VideotexKeyboardCode.CTRL_4: '_',
+        VideotexKeyboardCode.CTRL_LEFT: '█',
+        # Two and Three bytes Codes
+        VideotexKeyboardCode.CTRL_CANCEL: '£',
+        VideotexKeyboardCode.TS_CORRECTION: '§',
+        VideotexKeyboardCode.CTRL_8: '←',
+        VideotexKeyboardCode.CTRL_9: '→',
+        VideotexKeyboardCode.CTRL_HASH: '↓',
+        VideotexKeyboardCode.CTRL_0: '°',
+        VideotexKeyboardCode.CTRL_STAR: '±',
+        VideotexKeyboardCode.CTRL_7: '÷',
+        VideotexKeyboardCode.TS_NEXT: '`',
+        VideotexKeyboardCode.TS_PREVIOUS: '´',
+        VideotexKeyboardCode.TS_SUMMARY: '^',
+        VideotexKeyboardCode.TS_GUIDE: '¨',
+        VideotexKeyboardCode.CTRL_CORRECTION: 'ç',
+        VideotexKeyboardCode.CTRL_RETURN: 'Œ',
+        VideotexKeyboardCode.CTRL_REPEAT: 'œ',
+        VideotexKeyboardCode.CTRL_NEXT: 'β'
+    }
+
+    return videotex_to_unicode_table.get(code, '')

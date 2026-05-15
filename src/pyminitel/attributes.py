@@ -1,11 +1,26 @@
-from enum import Enum
-from logging import *
+"""
+attributes.py
+
+This module contains the Text, Zone and SemiGraphics Attributes classes for pyminitel library.
+
+Author: Pol Bailleux (Xenoth)
+Date: February 2025
+License: MIT
+"""
+
 import copy
 
-ESC = b'\x1b'
-DELIMETER = b'\x20'    
+from enum import Enum
+from dataclasses import dataclass
+from typing import Final
+
+ESC: Final[bytes] = b'\x1b'
+DELIMITER: Final[bytes] = b'\x20'
 
 class CharacterColor(Enum):
+    """ Minitel's character colors enumeration
+    """
+
     BLACK       = b'\x40'
     RED         = b'\x41'
     GREEN       = b'\x42'
@@ -15,14 +30,17 @@ class CharacterColor(Enum):
     CYAN        = b'\x46'
     WHITE       = b'\x47'
 
-BLINKING = b'\x48'
-FIXED = b'\x49'
-NORMAL_SIZE = b'\x4c'
-DOUBLE_HEIGHT = b'\x4d'
-DOUBLE_WIDTH = b'\x4e'
-DOUBLE_SIZE = b'\x4f'
+BLINKING: Final[bytes] = b'\x48'
+FIXED: Final[bytes] = b'\x49'
+NORMAL_SIZE: Final[bytes] = b'\x4c'
+DOUBLE_HEIGHT: Final[bytes] = b'\x4d'
+DOUBLE_WIDTH: Final[bytes] = b'\x4e'
+DOUBLE_SIZE: Final[bytes] = b'\x4f'
 
 class BackgroundColor(Enum):
+    """ Minitel's background colors enumeration
+    """
+
     BLACK       = b'\x50'
     RED         = b'\x51'
     GREEN       = b'\x52'
@@ -32,213 +50,324 @@ class BackgroundColor(Enum):
     CYAN        = b'\x56'
     WHITE       = b'\x57'
 
+MASKING: Final[bytes] = b'\x58'
+START_HIGHLIGHTING: Final[bytes] = b'\x5a'
+END_HIGHLIGHTING: Final[bytes] = b'\x59'
+NORMAL_BACKGROUND: Final[bytes] = b'\x5c'
+INVERTED_BACKGROUND: Final[bytes] = b'\x5d'
 
-MASKING = b'\x58'
-START_HIGHLIGHTING = b'\x5a'
-END_HIGHLIGHTING = b'\x59'
-NORMAL_BACKGROUND = b'\x5c'
-INVERTED_BACKGROUND = b'\x5d'
+START_LINEAGE: Final[bytes] = b'\x5a'
+END_LINEAGE: Final[bytes] = b'\x59'
 
-START_LINEAGE = b'\x5a'
-END_LINEAGE = b'\x59'
+UNMASKING: Final[bytes] = b'\x5F'
 
-UNMASKING = b'\x5F'    
+@dataclass(slots=True)
+class SemiGraphicsAttributesState():
+    """ Minitel's SemiGraphics attributes state for api usage.
+    """
 
+    color: CharacterColor | None = None
+    background: BackgroundColor | None = None
+    blinking: bool | None = None
+    disjointed: bool | None = None
 
 class SemiGraphicsAttributes():
+    """ Minitel's SemiGraphics attributes class.
+    """
+
     def __init__(self) -> None:
-        self.color = CharacterColor.WHITE
-        self.blinking = False
-        self.background = BackgroundColor.BLACK
-        self.disjointed = False
+        self.state: SemiGraphicsAttributesState = SemiGraphicsAttributesState(
+            color = CharacterColor.WHITE,
+            blinking = False,
+            background = BackgroundColor.BLACK,
+            disjointed = False
+        )
 
-    def setAttributes(self, color: CharacterColor = None, blinking: bool = None, background: BackgroundColor = None, disjointed: bool = None) -> bytes:
+    def set_attributes(self, state: SemiGraphicsAttributesState) -> bytes:
+        """Update this instance's attributes and returns a command to send, applying for
+        the next SemiGraphics written on the Minitel.
 
-        data = b''
-        
-        if color is not None:
-            data += ESC + color.value
-            self.color = color
+        Args:
+            state (SemiGraphicsAttributesState):
+                SemiGraphics's state, attributes are None by default.
+        Returns:
+            bytes: Minitel's command
+        """
 
-        if blinking is not None:
-            if blinking:
+        data: bytes = b''
+
+        if state.color is not None:
+            data += ESC + state.color.value
+            self.state.color = state.color
+
+        if state.blinking is not None:
+            if state.blinking:
                 data += ESC + BLINKING
-                self.blinking = True
+                self.state.blinking = True
             else:
                 data += ESC + FIXED
-                self.blinking = False
+                self.state.blinking = False
 
-        if background is not None:
-            data += ESC + background.value
-            self.background = background
+        if state.background is not None:
+            data += ESC + state.background.value
+            self.state.background = state.background
 
-        if disjointed is not None:
-            if disjointed:
+        if state.disjointed is not None:
+            if state.disjointed:
                 data += ESC + START_LINEAGE
-                self.disjointed = True
+                self.state.disjointed = True
             else:
                 data += ESC + END_LINEAGE
-                self.disjointed = False
-    
+                self.state.disjointed = False
+
         return data
 
     def diff(self, new: "SemiGraphicsAttributes") -> bytes:
-        color = None
-        blinking = None
-        background = None
-        disjointed = None
+        """ Return the command to update the difference between the current instance,
+        and the new one given, editing only the necessary attributes for optimizations.
 
-        if self.color != new.color:
-            color = new.color
-        
-        if self.blinking != new.blinking:
-            blinking = new.blinking
-        
-        if self.background != new.background:
-            background = new.background
+        Args:
+            new (SemiGraphicsAttributes): new attribute update to send.
 
-        if self.disjointed != new.disjointed:
-            disjointed = new.disjointed
-        
-        dump_zone = copy.deepcopy(self)
-        return dump_zone.setAttributes(color=color, blinking=blinking, background=background, disjointed=disjointed)
+        Returns:
+            bytes: Minitel's command
+        """
+
+        dump_state: SemiGraphicsAttributesState = SemiGraphicsAttributesState()
+
+        if self.state.color != new.state.color:
+            dump_state.color = new.state.color
+
+        if self.state.blinking != new.state.blinking:
+            dump_state.blinking = new.state.blinking
+
+        if self.state.background != new.state.background:
+            dump_state.background = new.state.background
+
+        if self.state.disjointed != new.state.disjointed:
+            dump_state.disjointed = new.state.disjointed
+
+        dump_zone: SemiGraphicsAttributes = copy.deepcopy(self)
+        return dump_zone.set_attributes(state=dump_state)
+
+@dataclass(slots=True)
+class TextAttributesState():
+    """ Minitel's Text attributes state for api usage.
+    """
+
+    color: CharacterColor | None = None
+    blinking: bool | None = None
+    inverted: bool | None = None
+    double_height: bool | None = None
+    double_width: bool | None = None
 
 class TextAttributes():
+    """ Minitel's Text attributes class.
+    """
 
     def __init__(self) -> None:
-        self.color = CharacterColor.WHITE
-        self.blinking = False
-        self.inverted = False
-        self.double_height = False
-        self.double_width = False
+        self.state: TextAttributesState = TextAttributesState(
+            color = CharacterColor.WHITE,
+            blinking = False,
+            inverted = False,
+            double_height = False,
+            double_width = False
+        )
 
-    def setAttributes(self, color: CharacterColor = None, blinking: bool = None, inverted = None, double_height: bool = None, double_width: bool = None) -> bytes:
+    def _set_height_width_attributes(self, state: TextAttributesState) -> bytes:
+        """Private method to handle the height and width attributes
 
-        data = b''
-        
-        if color is not None:
-            data += ESC + color.value
-            self.color = color
+        Args:
+            state (TextAttributesState): Text's attributes to set.
 
-        if blinking is not None:
-            if blinking:
-                data += ESC + BLINKING
-                self.blinking = True
-            else:
-                data += ESC + FIXED
-                self.blinking = False
+        Returns:
+            bytes: Minitel's command for height and width update
+        """
 
-        if inverted is not None:
-            if inverted:
-                data += ESC + INVERTED_BACKGROUND
-                self.inverted = True
-            else:
-                data += ESC + NORMAL_BACKGROUND
-                self.inverted = False
+        data: bytes = b''
 
-        if double_height is not None or double_width is not None:
-            if double_width == double_height:
-                if double_height:
+        if state.double_height is not None or state.double_width is not None:
+            if state.double_width == state.double_height:
+                if state.double_height:
                     data += ESC + DOUBLE_SIZE
-                    self.double_height = True
-                    self.double_width = True
+                    self.state.double_height = True
+                    self.state.double_width = True
                 else:
                     data += ESC + NORMAL_SIZE
-                    self.double_height = False
-                    self.double_width = False
+                    self.state.double_height = False
+                    self.state.double_width = False
             else:
-                if double_height is not None and not double_height or double_width is not None and not double_width:
-                        data += ESC + NORMAL_SIZE
-                        if double_width is not None and not double_width:
-                            self.double_width = False
-                        else:
-                            self.double_height = False
-                if double_height:
+                if (
+                    state.double_height is not None and not state.double_height or
+                    state.double_width is not None and not state.double_width
+                ):
+                    data += ESC + NORMAL_SIZE
+                    if state.double_width is not None and not state.double_width:
+                        self.state.double_width = False
+                    else:
+                        self.state.double_height = False
+                if state.double_height:
                     data += ESC + DOUBLE_HEIGHT
-                    self.double_height = True
-                if double_width:
+                    self.state.double_height = True
+                if state.double_width:
                     data += ESC + DOUBLE_WIDTH
-                    self.double_width = True
+                    self.state.double_width = True
 
         return data
-    
+
+    def set_attributes(self, state: TextAttributesState) -> bytes:
+        """Update this instance's attributes and returns a command to send, applying for
+        the next Text written on the Minitel.
+
+        Args:
+            state TextAttributesState: Text's attributes state; Attributes are None by default.
+
+        Returns:
+            bytes: Minitel's command
+        """
+
+        data: bytes = b''
+
+        if state.color is not None:
+            data += ESC + state.color.value
+            self.state.color = state.color
+
+        if state.blinking is not None:
+            if state.blinking:
+                data += ESC + BLINKING
+                self.state.blinking = True
+            else:
+                data += ESC + FIXED
+                self.state.blinking = False
+
+        if state.inverted is not None:
+            if state.inverted:
+                data += ESC + INVERTED_BACKGROUND
+                self.state.inverted = True
+            else:
+                data += ESC + NORMAL_BACKGROUND
+                self.state.inverted = False
+
+        data += self._set_height_width_attributes(state=state)
+
+        return data
+
     def diff(self, new: "TextAttributes") -> bytes:
-        color = None
-        blinking = None
-        inverted = None
-        double_height = None
-        double_width = None
+        """ Return the command to update the difference between the current instance,
+        and the new one given, editing only the necessary attributes for optimizations.
 
-        if self.color != new.color:
-            color = new.color
-        
-        if self.blinking != new.blinking:
-            blinking = new.blinking
-        
-        if self.inverted != new.inverted:
-            inverted = new.inverted
-        
-        if self.double_height != new.double_height:
-            print('HEIGHT DIFFERENT')
-            double_height = new.double_height
+        Args:
+            new (TextAttributes): new attribute update to send.
 
-        if self.double_width != new.double_width:
-            double_width = new.double_width
-        
-        dump_zone = copy.deepcopy(self)
-        return dump_zone.setAttributes(color=color, blinking=blinking, inverted=inverted, double_height=double_height, double_width=double_width)
+        Returns:
+            bytes: Minitel's command
+        """
+
+        dump_state: TextAttributesState = TextAttributesState()
+
+        if self.state.color != new.state.color:
+            dump_state.color = new.state.color
+
+        if self.state.blinking != new.state.blinking:
+            dump_state.blinking = new.state.blinking
+
+        if self.state.inverted != new.state.inverted:
+            dump_state.inverted = new.state.inverted
+
+        if self.state.double_height != new.state.double_height:
+            dump_state.double_height = new.state.double_height
+
+        if self.state.double_width != new.state.double_width:
+            dump_state.double_width = new.state.double_width
+
+        dump_zone: TextAttributes = copy.deepcopy(self)
+        return dump_zone.set_attributes(state = dump_state)
+
+@dataclass(slots=True)
+class ZoneAttributesState():
+    """ Minitel's Zone attributes state for api usage.
+    """
+
+    background: BackgroundColor | None = None
+    masking: bool | None = None
+    highlight: bool | None = None
 
 class ZoneAttributes():
+    """ Minitel's Zone attributes class.
+    To apply a zone send a white space as delimiter
+    until the end of the line or a new zone delimiter.
+    """
 
     def __init__(self) -> None:
-        self.background = BackgroundColor.BLACK
-        self.masking = False
-        self.highlight = False
+        self.state: ZoneAttributesState = ZoneAttributesState(
+            background = BackgroundColor.BLACK,
+            masking = False,
+            highlight = False
+        )
 
-    def setAttributes(self, color: BackgroundColor = None, masking: bool = None, highlight: bool = None) -> bytes:
-        data = b''
+    def set_attributes(
+        self,
+        state: ZoneAttributesState
+    ) -> bytes:
+        """Update this instance's attributes and returns a command to send, containing
+        zone delimiter and its attributes.
 
-        if color is not None:
-            data += ESC + color.value
-            self.background = color
+        Args:
+            state TextAttributesState: Text's attributes state; Attributes are None by default.
 
-        if masking is not None:
-            if masking:
+        Returns:
+            bytes: _description_
+        """
+
+        data: bytes = b''
+
+        if state.background is not None:
+            data += ESC + state.background.value
+            self.state.background = state.background
+
+        if state.masking is not None:
+            if state.masking:
                 data += ESC + MASKING
-                self.masking = True
+                self.state.masking = True
             else:
                 data += ESC + UNMASKING
-                self.masking = False
-        
-        if highlight is not None:
-            if highlight:
+                self.state.masking = False
+
+        if state.highlight is not None:
+            if state.highlight:
                 data += ESC + START_HIGHLIGHTING
-                self.highlight = True
+                self.state.highlight = True
             else:
                 data += ESC + END_HIGHLIGHTING
-                self.highlight = False
+                self.state.highlight = False
 
         if len(data):
-            data += DELIMETER
+            data += DELIMITER
 
         return data
-    
+
     def diff(self, new: "ZoneAttributes") -> bytes:
-        background = None
-        highlight = None
-        masking = None
+        """ Return the command to update the difference between the current instance,
+        and the new one given, editing only the necessary attributes for optimizations.
+        This will send another delimiter.
 
-        if self.background != new.background:
-            background = new.background
-        
-        if self.highlight != new.highlight:
-            highlight = new.highlight
-        
-        if self.masking != new.masking:
-            masking = new.masking
-        
+        Args:
+            new (ZoneAttributes): new attribute update to send.
+
+        Returns:
+            bytes: Minitel's command
+        """
+
+        dump_state: ZoneAttributesState = ZoneAttributesState()
+
+        if self.state.background != new.state.background:
+            dump_state.background = new.state.background
+
+        if self.state.highlight != new.state.highlight:
+            dump_state.highlight = new.state.highlight
+
+        if self.state.masking != new.state.masking:
+            dump_state.masking = new.state.masking
+
         dump_zone = copy.deepcopy(self)
-        return dump_zone.setAttributes(color=background, masking=masking, highlight=highlight)
-
-
-
+        return dump_zone.set_attributes(state = dump_state)
